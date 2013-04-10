@@ -22,10 +22,11 @@ using namespace glm;
 int main( void )
 {
 	
-	int particles = 350;
-	float stepTime = 1.0f/60.0f;
+	int particles = 1500;
+	float stepTime = 1.0f/10.0f;
+	int threads = 24;
 	ParticleEngine pe;
-	pe.intializeEngine(particles);
+	pe.intializeEngine(particles,threads);
 
 	// Initialise GLFW
 	if( !glfwInit() )
@@ -96,7 +97,7 @@ int main( void )
 	glGenBuffers(1, &vertexbuffer);
 	glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
 	
-	double lastTime = glfwGetTime();
+
 
 	do{
 		vector<float> datav = pe.getPositions();
@@ -132,9 +133,10 @@ int main( void )
 
 		// Swap buffers
 		glfwSwapBuffers();
-		double currentTime = glfwGetTime();
+		
 		pe.step(stepTime);
-		lastTime = currentTime;
+
+
 
 	} // Check if the ESC key was pressed or the window was closed
 	while( glfwGetKey( GLFW_KEY_ESC ) != GLFW_PRESS &&

@@ -4,72 +4,76 @@
 #include "VectorMath.h"
 #include <time.h>
 #include <algorithm>
+#include <thread>
 
 const float PI = std::atanf(1.0f)*4.0f;
+int numberOfParticles;
+vector<Particle> particleArray;
+float G;
+float Rmin;
+float blackHoleMass;
+float blackHoleRadius;
+float disappearingRadius;
+bool collisions;
+float previousAngle;
+int numberOfThreads;
+float minSpawnRadius;
+int maxSpawnRadius;
+int maxSpawnVelocity;
+int maxZSpawnDistance;
+
 ParticleEngine::ParticleEngine(void)
 {
 	//Gravitational Constant
-	G=10000;
+	G=100;
 
 	//Fudge factor, so we don't divide by really small numbers
 	Rmin = 5;
 
 	//How strong the central keeping force is, 0 to turn this off
-	blackHoleMass = 200.0f;
+	blackHoleMass = 300.0f;
 
 	//How close the particles need to be before getting eaten, 0 to turn this off
 	blackHoleRadius = 1.0f;
 
 	//How far away from the origin before they are removed
 	disappearingRadius = 1000.0f;
-
+	
 	//Should particles collide with each other or not
 	collisions = true;
 
+	//Minimum spawn radius
+	minSpawnRadius = 70.0f;
+
+	//Maximum spawn radius addition
+	maxSpawnRadius = 600;
+
+	//Max Spawn Velocity
+	maxSpawnVelocity = 20;
+
+	//Max Z spawn distance
+	maxZSpawnDistance = 20;
+
+
+
+	/******************/
 	//Don't touch these
+	/******************/
 	srand ((unsigned int)time(NULL));
 	previousAngle = 0.0f;
+	numberOfThreads=1;
 }
-
-
-ParticleEngine::~ParticleEngine(void)
-{
-}
-
-vector<float> ParticleEngine::getPositions()
-{
-	vector<float> retern(3*numberOfParticles);
-	for(int i=0;i<numberOfParticles; i++)
-	{
-		retern[3*i]=(particleArray[i].position.x);
-		retern[3*i+1]=(particleArray[i].position.y);
-		retern[3*i+2]=(particleArray[i].position.z);
-	}
-	return retern;
-}
-
-
-void ParticleEngine::intializeEngine(int particles)
-{
-	numberOfParticles = particles;
-	particleArray = vector<Particle>(particles);
-	for(int i = 0; i<particles; i++)
-	{
-		particleArray[i] = generateNewParticle();
-	}
-}
-
-Particle ParticleEngine::generateNewParticle()
+Particle generateNewParticle()
 {
 	Particle retern = Particle();
 	
-	float radius = ((float)(rand()%600)+70);
+	float radius = ((float)(rand()%maxSpawnRadius)+minSpawnRadius);
 
 	retern.position.x = radius*cosf(previousAngle);
 	retern.position.y = radius*sinf(previousAngle);
-	retern.position.z = (float)(rand()%20) - 10;
+	retern.position.z = (float)(rand()%maxZSpawnDistance) - (float)maxZSpawnDistance;
 
-	float velocity = ((float)(rand()%30))+80;
+	float velocity = ((float)(rand()%maxSpawnVelocity));
 
 	retern.velocity.x = -velocity*sinf(previousAngle);
 	retern.velocity.y = velocity*cosf(previousAngle);
@@ -95,30 +99,50 @@ Particle ParticleEngine::generateNewParticle()
 	return retern;
 }
 
+
+ParticleEngine::~ParticleEngine(void)
+{
+}
+
+vector<float> ParticleEngine::getPositions()
+{
+	vector<float> retern(3*numberOfParticles);
+	for(int i=0;i<numberOfParticles; i++)
+	{
+		retern[3*i]=(particleArray[i].position.x);
+		retern[3*i+1]=(particleArray[i].position.y);
+		retern[3*i+2]=(particleArray[i].position.z);
+	}
+	return retern;
+}
+
+
+void ParticleEngine::intializeEngine(int particles, int nthreads)
+{
+	if (nthreads>particles)
+	{
+		numberOfThreads = particles;
+	}
+	else
+	{
+		numberOfThreads=nthreads;
+	}
+
+	numberOfParticles = particles;
+	particleArray = vector<Particle>(particles);
+	for(int i = 0; i<particles; i++)
+	{
+		particleArray[i] = generateNewParticle();
+	}
+}
+
+
 int ParticleEngine::getNumberOfParticles()
 {
 	return numberOfParticles;
 }
 
-void ParticleEngine::step(float time)
-{
-	
-	for(int i=0; i<numberOfParticles; i++)
-	{
-		//calculate acceleration from the other stars
-		calculateParticleAcceleration(i);
-
-		//calculate the acceleration from the black hole
-		//this is to help encourage the particles to stay towards the origin
-		calculateBlackHoleAcceleration(i);
-	}
-
-	//update start velocity and position
-	updateVelocityAndPositions(time);
-
-}
-
-void ParticleEngine::calculateParticleAcceleration(int particleNumber)
+void calculateParticleAcceleration(int particleNumber)
 {
 	float ax,ay,az;
 	ax = ay = az = 0;
@@ -144,18 +168,14 @@ void ParticleEngine::calculateParticleAcceleration(int particleNumber)
 		//they have collided
 		if(collisions && radius<thisParticle.radius+otherParticle.radius)
 		{
-			
-			bool found = false;
 			particleArray[particleNumber].velocity.x = (thisParticle.velocity.x * thisParticle.mass + otherParticle.velocity.x*otherParticle.mass) / (thisParticle.mass + otherParticle.mass);
 			particleArray[particleNumber].velocity.y = (thisParticle.velocity.y * thisParticle.mass + otherParticle.velocity.y*otherParticle.mass) / (thisParticle.mass + otherParticle.mass);
 			particleArray[particleNumber].velocity.z = (thisParticle.velocity.z * thisParticle.mass + otherParticle.velocity.z*otherParticle.mass) / (thisParticle.mass + otherParticle.mass);
 
 			particleArray[particleNumber].setMass(thisParticle.mass+otherParticle.mass);
 
-
+			//replace the second particle
 			particleArray[i] = generateNewParticle();
-			
-			
 		}
 	
 		//get the inverse, with a slight fudge factor to prevent dividing by really small numbers, cause the particles to fling off when they get close
@@ -178,7 +198,7 @@ void ParticleEngine::calculateParticleAcceleration(int particleNumber)
 
 }
 
-void ParticleEngine::calculateBlackHoleAcceleration(int particleNumber)
+void calculateBlackHoleAcceleration(int particleNumber)
 {
 	//TODO: decide if we want to remove stars that are too far away from the middle
 
@@ -200,7 +220,6 @@ void ParticleEngine::calculateBlackHoleAcceleration(int particleNumber)
 
 		float acceleration = G*blackHoleMass*thisParticle.mass*radiusInverse*radiusInverse;
 
-
 		float newx = -acceleration*thisParticle.position.x*radiusInverse;
 		float newy = -acceleration*thisParticle.position.y*radiusInverse;
 		float newz = -acceleration*thisParticle.position.z*radiusInverse;
@@ -219,13 +238,9 @@ void ParticleEngine::calculateBlackHoleAcceleration(int particleNumber)
 		blackHoleMass += thisParticle.mass;
 		particleArray[particleNumber] = generateNewParticle();
 	}
-
-	
-
-
 }
 
-void ParticleEngine::updateVelocityAndPositions(float time)
+void updateVelocityAndPositions(float time)
 {
 	for(int i = 0; i < numberOfParticles; i++)
 	{
@@ -240,6 +255,68 @@ void ParticleEngine::updateVelocityAndPositions(float time)
 		particleArray[i].position.z += particleArray[i].velocity.z * time;
 
 	}
-	int a = 3;
 }
 
+void parallelAcceleration(int start,int stop)
+{
+    int a=3;
+	for(int i=start; i<=stop; i++)
+	{
+		//calculate acceleration from the other stars
+		calculateParticleAcceleration(i);
+
+		//calculate the acceleration from the black hole
+		//this is to help encourage the particles to stay towards the origin
+		calculateBlackHoleAcceleration(i);
+	}
+}
+
+void parallelVelocityAndPosition(int start, int stop, float time)
+{
+	//update start velocity and position
+	for(int i = start; i < stop; i++)
+	{
+		//delta V = A * delta T
+		particleArray[i].velocity.x += particleArray[i].acceleration.x * time;
+		particleArray[i].velocity.y += particleArray[i].acceleration.y * time;
+		particleArray[i].velocity.z += particleArray[i].acceleration.z * time;
+
+		//delta P = V * delta T
+		particleArray[i].position.x += particleArray[i].velocity.x * time;
+		particleArray[i].position.y += particleArray[i].velocity.y * time;
+		particleArray[i].position.z += particleArray[i].velocity.z * time;
+
+	}
+}
+
+void ParticleEngine::step(float time)
+{
+	//Split all the particles into threads, so the acceleration can be calculated
+	vector<std::thread> threads;
+	for(int i=0;i<numberOfThreads;i++)
+	{
+		threads.push_back(std::thread(parallelAcceleration,i*numberOfParticles/numberOfThreads, (i+1)*numberOfParticles/numberOfThreads-1));
+	}
+
+	for(int j=0;j<numberOfThreads;j++)
+	{
+		threads[j].join();
+	}
+
+	//For some reason, it is faster not to parallelize the velocity update...
+
+	/*threads.clear();
+	for(int i=0;i<numberOfThreads;i++)
+	{
+		threads.push_back(std::thread(parallelVelocityAndPosition,i*numberOfParticles/numberOfThreads, (i+1)*numberOfParticles/numberOfThreads-1,time));
+	}
+
+	for(int j=0;j<numberOfThreads;j++)
+	{
+		threads[j].join();
+	}*/
+	
+	updateVelocityAndPositions( time);
+	
+
+}
