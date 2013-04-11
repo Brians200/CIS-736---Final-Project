@@ -15,7 +15,8 @@
 #include <glm/gtc/matrix_transform.hpp>
 using namespace glm;
 
-#include <common/shader.hpp>
+#include "shader.hpp"
+#include "controls.hpp"
 
 #include "ParticleEngine.h"
 #include "ColorPicker.h"
