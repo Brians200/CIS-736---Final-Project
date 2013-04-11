@@ -25,13 +25,13 @@ int maxZSpawnDistance;
 ParticleEngine::ParticleEngine(void)
 {
 	//Gravitational Constant
-	G=100;
+	G=30;
 
 	//Fudge factor, so we don't divide by really small numbers
 	Rmin = 5;
 
 	//How strong the central keeping force is, 0 to turn this off
-	blackHoleMass = 600.0f;
+	blackHoleMass = 000.0f;
 
 	//How close the particles need to be before getting eaten, 0 to turn this off
 	blackHoleRadius = 5.0f;
@@ -46,10 +46,10 @@ ParticleEngine::ParticleEngine(void)
 	minSpawnRadius = 70.0f;
 
 	//Maximum spawn radius addition
-	maxSpawnRadius = 1500;
+	maxSpawnRadius = 200;
 
 	//Max Spawn Velocity
-	maxSpawnVelocity = 30;
+	maxSpawnVelocity = 12;
 
 	//Max Z spawn distance
 	maxZSpawnDistance = 10;
@@ -79,7 +79,7 @@ Particle generateNewParticle()
 	retern.position.y = radius*sinf(previousAngle);
 	retern.position.z = (float)(rand()%maxZSpawnDistance) - (float)maxZSpawnDistance/2;
 
-	float velocity = ((float)(rand()%maxSpawnVelocity));
+	float velocity = maxSpawnVelocity;//((float)(rand()%maxSpawnVelocity));
 
 	retern.velocity.x = -velocity*sinf(previousAngle);
 	retern.velocity.y = velocity*cosf(previousAngle);
