@@ -22,7 +22,7 @@ using namespace glm;
 int main( void )
 {
 	
-	int particles = 350;
+	int particles = 200;
 	float stepTime = 1.0f/60.0f;
 	ParticleEngine pe;
 	pe.intializeEngine(particles);

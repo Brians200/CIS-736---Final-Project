@@ -25,13 +25,17 @@ private:
 	bool collisions;
 
 	float previousAngle;
+	float centerX;
+	float centerY;
+	float centerZ;
+	float totalMass;
 
 
 	void calculateParticleAcceleration(int particleNumber);
 	void calculateBlackHoleAcceleration(int particleNumber);
 	void updateVelocityAndPositions(float time);
 	Particle generateNewParticle();
-	
+	void findCenterOfMass();
 	
 
 };
