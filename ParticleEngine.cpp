@@ -31,10 +31,10 @@ ParticleEngine::ParticleEngine(void)
 	Rmin = 5;
 
 	//How strong the central keeping force is, 0 to turn this off
-	blackHoleMass = 300.0f;
+	blackHoleMass = 600.0f;
 
 	//How close the particles need to be before getting eaten, 0 to turn this off
-	blackHoleRadius = 1.0f;
+	blackHoleRadius = 5.0f;
 
 	//How far away from the origin before they are removed
 	disappearingRadius = 100000.0f;
@@ -49,10 +49,10 @@ ParticleEngine::ParticleEngine(void)
 	maxSpawnRadius = 1500;
 
 	//Max Spawn Velocity
-	maxSpawnVelocity = 20;
+	maxSpawnVelocity = 30;
 
 	//Max Z spawn distance
-	maxZSpawnDistance = 20;
+	maxZSpawnDistance = 10;
 
 
 
@@ -91,11 +91,11 @@ Particle generateNewParticle()
 	int random = rand()%10;
 	if(random == 9)
 	{
-		retern.setMass(1.5f);
+		retern.setMass(3.0f);
 	}
 	else if(random>6)
 	{
-		retern.setMass(1.25f);
+		retern.setMass(2.0f);
 	}
 	else
 	{
