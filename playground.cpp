@@ -18,11 +18,19 @@ using namespace glm;
 #include <common/shader.hpp>
 
 #include "ParticleEngine.h"
+#include "ColorPicker.h"
 
 #include <vector>
 
 int main( void )
 {
+
+	ColorPicker cp;
+	vector<float> color = cp.getColor(0,0,1); //white
+	color = cp.getColor(0,0,0); //black
+	color = cp.getColor(0,1,1); //Neon red
+	color = cp.getColor(120,1,1); //Neon green
+	color = cp.getColor(240,1,1); //Neon Blue
 
 	_SYSTEM_INFO sysinfo;
 	GetNativeSystemInfo( &sysinfo );

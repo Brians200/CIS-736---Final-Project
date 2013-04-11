@@ -31,7 +31,7 @@ vector<float> ColorPicker::getColor(float hue, float saturation, float value)
 
 	int hprime = (int)hue/60;
 
-	float X = chroma * (hprime % 2 -1);
+	float X = chroma * (1-abs((hprime % 2) -1));
 
 	float r1,g1,b1;
 	r1=g1=b1=0;
