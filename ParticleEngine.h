@@ -14,14 +14,11 @@ public:
 	vector<float> getPositions();
 	int getNumberOfParticles();
 	float getParticleSize(int particleNumber);
+	float getMass(int particleNumber);
+	float getAcceleration(int particleNumber);
+	float getVelocity(int particleNumber);
 
 private:
-	
-	
-	//	void calculateParticleAcceleration(int particleNumber);
-//	void calculateBlackHoleAcceleration(int particleNumber);
-//	void updateVelocityAndPositions(float time);
-//	Particle generateNewParticle();
 
 };
 

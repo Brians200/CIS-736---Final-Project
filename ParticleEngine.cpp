@@ -40,7 +40,7 @@ ParticleEngine::ParticleEngine(void)
 	disappearingRadius = 100000.0f;
 	
 	//Should particles collide with each other or not
-	collisions = true;
+	collisions = false;
 
 	//Minimum spawn radius
 	minSpawnRadius = 70.0f;
@@ -79,7 +79,7 @@ Particle generateNewParticle()
 	retern.position.y = radius*sinf(previousAngle);
 	retern.position.z = (float)(rand()%maxZSpawnDistance) - (float)maxZSpawnDistance/2;
 
-	float velocity = maxSpawnVelocity;//((float)(rand()%maxSpawnVelocity));
+	float velocity = (float)maxSpawnVelocity;//((float)(rand()%maxSpawnVelocity));
 
 	retern.velocity.x = -velocity*sinf(previousAngle);
 	retern.velocity.y = velocity*cosf(previousAngle);
@@ -140,6 +140,30 @@ void ParticleEngine::intializeEngine(int particles, int nthreads)
 	{
 		particleArray[i] = generateNewParticle();
 	}
+}
+
+
+float ParticleEngine::getMass(int particleNumber)
+{
+	return particleArray[particleNumber].mass;
+}
+
+float ParticleEngine::getAcceleration(int particleNumber)
+{
+	float x = particleArray[particleNumber].acceleration.x;
+	float y = particleArray[particleNumber].acceleration.y;
+	float z = particleArray[particleNumber].acceleration.z;
+
+	return sqrt(x*x+y*y+z*z);
+}
+
+float ParticleEngine::getVelocity(int particleNumber)
+{
+	float x = particleArray[particleNumber].velocity.x;
+	float y = particleArray[particleNumber].velocity.y;
+	float z = particleArray[particleNumber].velocity.z;
+
+	return sqrt(x*x+y*y+z*z);
 }
 
 

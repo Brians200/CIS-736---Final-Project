@@ -22,7 +22,7 @@ using namespace glm;
 int main( void )
 {
 	
-	int particles = 1500;
+	int particles = 3;
 	int threads = 12;
 	ParticleEngine pe;
 	pe.intializeEngine(particles,threads);
@@ -136,7 +136,7 @@ int main( void )
 		
 
 		double currentTime = glfwGetTime();
-		pe.step(currentTime-lastTime);
+		pe.step((float)(currentTime-lastTime));
 		lastTime = currentTime;
 
 
