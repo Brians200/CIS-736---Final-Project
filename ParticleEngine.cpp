@@ -105,6 +105,32 @@ Particle generateNewParticle()
 	return retern;
 }
 
+void ParticleEngine::increaseNumberOfParticles(int number)
+{
+	numberOfParticles+=number;
+	for(int i = 0 ;i<number;i++)
+	{
+		particleArray.push_back(generateNewParticle());
+	}
+}
+void ParticleEngine::decreaseNumberOfParticles(int number)
+{
+	if(numberOfParticles-number>0)
+	{
+		for(int i=0;i<number;i++)
+		{
+			numberOfParticles--;
+			particleArray.pop_back();
+		}
+	}
+	else
+	{
+		numberOfParticles=1;
+		particleArray.clear();
+		particleArray.push_back(generateNewParticle());
+	}
+}
+
 
 ParticleEngine::~ParticleEngine(void)
 {
