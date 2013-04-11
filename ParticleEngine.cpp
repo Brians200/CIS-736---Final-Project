@@ -9,8 +9,8 @@
 const float PI = std::atanf(1.0f)*4.0f;
 int numberOfParticles;
 vector<Particle> particleArray;
-float G;
-float Rmin;
+float g;
+float rMin;
 float blackHoleMass;
 float blackHoleRadius;
 float disappearingRadius;
@@ -19,49 +19,33 @@ float previousAngle;
 int numberOfThreads;
 float minSpawnRadius;
 int maxSpawnRadius;
-int maxSpawnVelocity;
+float spawnVelocity;
 int maxZSpawnDistance;
 
 ParticleEngine::ParticleEngine(void)
 {
-	//Gravitational Constant
-	G=30;
+}
 
-	//Fudge factor, so we don't divide by really small numbers
-	Rmin = 5;
+ParticleEngine::ParticleEngine(float gp, float rMinp,float blackHoleMassp, float blackHoleRadiusp, float disappearingRadiusp,float minSpawnRadiusp, int maxSpawnRadiusp, float spawnVelocityp, int maxZSpawnDistancep, int threadsp, int particlesp, bool collisionsp)
+{
+	g = gp;
+	rMin = rMinp;
+	blackHoleMass = blackHoleMassp;
+	blackHoleRadius = blackHoleRadiusp;
+	disappearingRadius = disappearingRadiusp;
+	minSpawnRadius = minSpawnRadiusp;
+	maxSpawnRadius = maxSpawnRadiusp - minSpawnRadiusp;
+	spawnVelocity = spawnVelocityp;
+	maxZSpawnDistance = maxZSpawnDistancep;
+	collisions = collisionsp;
+	numberOfThreads = threadsp;
+	numberOfParticles = particlesp;
 
-	//How strong the central keeping force is, 0 to turn this off
-	blackHoleMass = 000.0f;
-
-	//How close the particles need to be before getting eaten, 0 to turn this off
-	blackHoleRadius = 5.0f;
-
-	//How far away from the origin before they are removed
-	disappearingRadius = 100000.0f;
-	
-	//Should particles collide with each other or not
-	collisions = false;
-
-	//Minimum spawn radius
-	minSpawnRadius = 70.0f;
-
-	//Maximum spawn radius addition
-	maxSpawnRadius = 200;
-
-	//Max Spawn Velocity
-	maxSpawnVelocity = 12;
-
-	//Max Z spawn distance
-	maxZSpawnDistance = 10;
-
-
-
-	/******************/
-	//Don't touch these
-	/******************/
 	srand ((unsigned int)time(NULL));
 	previousAngle = 0.0f;
-	numberOfThreads=1;
+
+	intializeEngine();
+
 }
 
 float ParticleEngine::getParticleSize(int particleNumber)
@@ -79,7 +63,7 @@ Particle generateNewParticle()
 	retern.position.y = radius*sinf(previousAngle);
 	retern.position.z = (float)(rand()%maxZSpawnDistance) - (float)maxZSpawnDistance/2;
 
-	float velocity = (float)maxSpawnVelocity;//((float)(rand()%maxSpawnVelocity));
+	float velocity = (float)spawnVelocity;//((float)(rand()%maxSpawnVelocity));
 
 	retern.velocity.x = -velocity*sinf(previousAngle);
 	retern.velocity.y = velocity*cosf(previousAngle);
@@ -149,20 +133,10 @@ vector<float> ParticleEngine::getPositions()
 }
 
 
-void ParticleEngine::intializeEngine(int particles, int nthreads)
+void ParticleEngine::intializeEngine()
 {
-	if (nthreads>particles)
-	{
-		numberOfThreads = particles;
-	}
-	else
-	{
-		numberOfThreads=nthreads;
-	}
-
-	numberOfParticles = particles;
-	particleArray = vector<Particle>(particles);
-	for(int i = 0; i<particles; i++)
+	particleArray = vector<Particle>(numberOfParticles);
+	for(int i = 0; i<numberOfParticles; i++)
 	{
 		particleArray[i] = generateNewParticle();
 	}
@@ -235,10 +209,10 @@ void calculateParticleAcceleration(int particleNumber)
 		}
 	
 		//get the inverse, with a slight fudge factor to prevent dividing by really small numbers, cause the particles to fling off when they get close
-		float radiusInverse = 1.0f/(radius + Rmin);
+		float radiusInverse = 1.0f/(radius + rMin);
 
 		//Figure out the magnitude of the total acceleration between these two
-		float acceleration = G*thisParticle.mass*otherParticle.mass*radiusInverse*radiusInverse;
+		float acceleration = g*thisParticle.mass*otherParticle.mass*radiusInverse*radiusInverse;
 
 		//add the individual compents to the running total
 		ax += acceleration * difference.x * radiusInverse;
@@ -272,9 +246,9 @@ void calculateBlackHoleAcceleration(int particleNumber)
 	{
 
 		//increase the fudge factor more than the other, so the black hole isn't as strong
-		float radiusInverse = 1.0f/ (radius + 2.0f*Rmin);
+		float radiusInverse = 1.0f/ (radius + 2.0f*rMin);
 
-		float acceleration = G*blackHoleMass*thisParticle.mass*radiusInverse*radiusInverse;
+		float acceleration = g*blackHoleMass*thisParticle.mass*radiusInverse*radiusInverse;
 
 		float newx = -acceleration*thisParticle.position.x*radiusInverse;
 		float newy = -acceleration*thisParticle.position.y*radiusInverse;

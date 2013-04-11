@@ -7,9 +7,9 @@ using namespace std;
 class ParticleEngine
 {
 public:
-	ParticleEngine(void);
+	ParticleEngine(float gp, float rMinp,float blackHoleMassp, float blackHoleRadiusp, float disappearingRadiusp,float minSpawnRadiusp, int maxSpawnRadiusp, float spawnVelocityp, int maxZSpawnDistancep, int threadsp, int particlesp, bool collisionsp);
 	~ParticleEngine(void);
-	void intializeEngine(int particles, int nthread);
+	void intializeEngine();
 	void step(float time);
 	vector<float> getPositions();
 
@@ -22,8 +22,11 @@ public:
 	float getAcceleration(int particleNumber);
 	float getVelocity(int particleNumber);
 
-
 private:
+	ParticleEngine(void);
+
+protected:
+	
 
 };
 

@@ -19,6 +19,7 @@ using namespace glm;
 #include "controls.hpp"
 
 #include "ParticleEngine.h"
+#include "ParticleEngineBuilder.h"
 #include "ColorPicker.h"
 
 #include <vector>
@@ -39,10 +40,20 @@ int main( void )
 
 	int particles = 1500;
 	int threads = numCPU;
-
-	ParticleEngine pe;
-	pe.intializeEngine(particles,threads);
-
+	ParticleEngine pe = (new ParticleEngineBuilder())->
+						setGravitationalConstant(30.0f)->
+						setMinimumRadius(5.0f)->
+						setBlackHoleMass(0.0f)->
+						setBlackHoleRadius(5.0f)->
+						setDisappearingRadius(10000.0f)->
+						setCollisions(true)->
+						setNumberOfThreads(threads)->
+						setMinSpawnRadius(70)->
+						setmaxSpawnRadius(270)->
+						setspawnVelocity(12.0f)->
+						setmaxZSpawnDistance(10.0f)->
+						setnumberOfParticles(particles)->
+						Build();
 	// Initialise GLFW
 	if( !glfwInit() )
 	{
