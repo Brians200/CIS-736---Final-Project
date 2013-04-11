@@ -1,6 +1,8 @@
+#define _WIN32_WINNT 0x0502
 // Include standard headers
 #include <stdio.h>
 #include <stdlib.h>
+#include <windows.h>
 
 // Include GLEW
 #include <GL/glew.h>
@@ -21,9 +23,12 @@ using namespace glm;
 
 int main( void )
 {
-	
+	_SYSTEM_INFO sysinfo;
+	GetNativeSystemInfo( &sysinfo );
+	int numCPU = sysinfo.dwNumberOfProcessors;
+
 	int particles = 1500;
-	int threads = 12;
+	int threads = numCPU;
 	ParticleEngine pe;
 	pe.intializeEngine(particles,threads);
 
