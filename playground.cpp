@@ -23,8 +23,7 @@ int main( void )
 {
 	
 	int particles = 1500;
-	float stepTime = 1.0f/10.0f;
-	int threads = 24;
+	int threads = 12;
 	ParticleEngine pe;
 	pe.intializeEngine(particles,threads);
 
@@ -97,9 +96,10 @@ int main( void )
 	glGenBuffers(1, &vertexbuffer);
 	glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
 	
-
+	 double lastTime = glfwGetTime();
 
 	do{
+		
 		vector<float> datav = pe.getPositions();
 		
 		glBufferData(GL_ARRAY_BUFFER, 3*pe.getNumberOfParticles()*sizeof(float), &datav[0], GL_STATIC_DRAW);
@@ -134,7 +134,10 @@ int main( void )
 		// Swap buffers
 		glfwSwapBuffers();
 		
-		pe.step(stepTime);
+
+		double currentTime = glfwGetTime();
+		pe.step(currentTime-lastTime);
+		lastTime = currentTime;
 
 
 

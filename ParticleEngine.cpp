@@ -37,7 +37,7 @@ ParticleEngine::ParticleEngine(void)
 	blackHoleRadius = 1.0f;
 
 	//How far away from the origin before they are removed
-	disappearingRadius = 1000.0f;
+	disappearingRadius = 100000.0f;
 	
 	//Should particles collide with each other or not
 	collisions = true;
@@ -46,7 +46,7 @@ ParticleEngine::ParticleEngine(void)
 	minSpawnRadius = 70.0f;
 
 	//Maximum spawn radius addition
-	maxSpawnRadius = 600;
+	maxSpawnRadius = 1500;
 
 	//Max Spawn Velocity
 	maxSpawnVelocity = 20;
@@ -63,6 +63,12 @@ ParticleEngine::ParticleEngine(void)
 	previousAngle = 0.0f;
 	numberOfThreads=1;
 }
+
+float ParticleEngine::getParticleSize(int particleNumber)
+{
+	return particleArray[particleNumber].radius;
+}
+
 Particle generateNewParticle()
 {
 	Particle retern = Particle();
@@ -71,7 +77,7 @@ Particle generateNewParticle()
 
 	retern.position.x = radius*cosf(previousAngle);
 	retern.position.y = radius*sinf(previousAngle);
-	retern.position.z = (float)(rand()%maxZSpawnDistance) - (float)maxZSpawnDistance;
+	retern.position.z = (float)(rand()%maxZSpawnDistance) - (float)maxZSpawnDistance/2;
 
 	float velocity = ((float)(rand()%maxSpawnVelocity));
 
@@ -147,6 +153,7 @@ void calculateParticleAcceleration(int particleNumber)
 	float ax,ay,az;
 	ax = ay = az = 0;
 
+	Particle thisParticle = particleArray[particleNumber];
 
 	//loop over all the particles
 	for(int i =0 ;i < numberOfParticles; i++)
@@ -154,7 +161,6 @@ void calculateParticleAcceleration(int particleNumber)
 		//skip this particle
 		if(i==particleNumber) continue;
 
-		Particle thisParticle = particleArray[particleNumber];
 		Particle otherParticle = particleArray[i];
 
 		//calculate differences between their coordinates

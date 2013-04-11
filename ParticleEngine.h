@@ -13,6 +13,7 @@ public:
 	void step(float time);
 	vector<float> getPositions();
 	int getNumberOfParticles();
+	float getParticleSize(int particleNumber);
 
 private:
 	
