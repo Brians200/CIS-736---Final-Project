@@ -9,7 +9,7 @@ const float PI = std::atanf(1.0f)*4.0f;
 ParticleEngine::ParticleEngine(void)
 {
 	//Gravitational Constant
-	G=100;
+	G=1000;
 
 	//Fudge factor, so we don't divide by really small numbers
 	Rmin = 5;
@@ -65,8 +65,8 @@ Particle ParticleEngine::generateNewParticle()
 	
 	float radius = ((float)(rand()%600)+70);
 
-	retern.position.x = radius*cosf(previousAngle);
-	retern.position.y = radius*sinf(previousAngle);
+	retern.position.x = ((float)(rand()%600))-300;//radius*cosf(previousAngle);
+	retern.position.y = 0;//radius*sinf(previousAngle);
 	retern.position.z = 0;//(float)(rand()%20) - 10;
 
 	float velocity = ((float)(rand()%30))+80;
@@ -81,11 +81,11 @@ Particle ParticleEngine::generateNewParticle()
 	int random = rand()%10;
 	if(random == 9)
 	{
-		retern.setMass(1.5f);
+		retern.setMass(1.0f);
 	}
 	else if(random>6)
 	{
-		retern.setMass(1.25f);
+		retern.setMass(1.0f);
 	}
 	else
 	{
@@ -107,6 +107,7 @@ void ParticleEngine::step(float time)
 	{
 		//calculate acceleration from the other stars
 		calculateParticleAcceleration(i);
+		calculateParticleAccelerationC(i);
 
 		//calculate the acceleration from the black hole
 		//this is to help encourage the particles to stay towards the origin
@@ -142,7 +143,7 @@ void ParticleEngine::findCenterOfMass()
 }
 
 
-void ParticleEngine::calculateParticleAcceleration(int particleNumber)
+void ParticleEngine::calculateParticleAccelerationC(int particleNumber)
 {
 	float ax,ay,az,cx,cy,cz;
 	ax = ay = az = cx = cy = cz = 0;
@@ -157,9 +158,9 @@ void ParticleEngine::calculateParticleAcceleration(int particleNumber)
 	{
 		return;
 	}
-	cx = centerX-(thisParticle.mass*thisParticle.position.x) / totalOtherMass;
-	cy = centerY-(thisParticle.mass*thisParticle.position.y) / totalOtherMass;
-	cz = centerZ-(thisParticle.mass*thisParticle.position.z) / totalOtherMass;
+	cx = (centerX-(thisParticle.mass*thisParticle.position.x)) / totalOtherMass;
+	cy = (centerY-(thisParticle.mass*thisParticle.position.y)) / totalOtherMass;
+	cz = (centerZ-(thisParticle.mass*thisParticle.position.z)) / totalOtherMass;
 
 
 	//calculate differences between their coordinates
@@ -186,6 +187,55 @@ void ParticleEngine::calculateParticleAcceleration(int particleNumber)
 	particleArray[particleNumber].acceleration.z = az;
 
 }
+
+void ParticleEngine::calculateParticleAcceleration(int particleNumber)
+{
+
+float totalOtherMass = 0.0f;
+float otherCenterX = 0.0f;
+
+
+float ax,ay,az;
+ax = ay = az = 0; 
+
+Particle thisParticle = particleArray[particleNumber];
+//loop over all the particles
+for(int i =0 ;i < numberOfParticles; i++)
+{
+//skip this particle
+if(i==particleNumber) continue;
+
+
+Particle otherParticle = particleArray[i];
+
+otherCenterX += otherParticle.position.x * otherParticle.mass;
+totalOtherMass += otherParticle.mass;
+
+//calculate differences between their coordinates
+Vector3 difference = VectorMath::difference(otherParticle.position, thisParticle.position);
+
+//calculate the distance between them
+float radius = sqrtf(difference.x*difference.x + difference.y *difference.y + difference.z*difference.z); 
+
+//get the inverse, with a slight fudge factor to prevent dividing by really small numbers, cause the particles to fling off when they get close
+float radiusInverse = 1.0f/(radius + Rmin);
+
+//Figure out the magnitude of the total acceleration between these two
+float acceleration = G*thisParticle.mass*otherParticle.mass*radiusInverse*radiusInverse;
+
+//add the individual compents to the running total
+ax += acceleration * difference.x * radiusInverse;
+ay += acceleration * difference.y * radiusInverse;
+az += acceleration * difference.z * radiusInverse;
+
+}
+
+
+particleArray[particleNumber].acceleration.x = ax;
+particleArray[particleNumber].acceleration.y = ay;
+particleArray[particleNumber].acceleration.z = az;
+
+} 
 
 void ParticleEngine::calculateBlackHoleAcceleration(int particleNumber)
 {

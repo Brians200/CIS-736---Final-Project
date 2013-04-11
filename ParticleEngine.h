@@ -32,6 +32,7 @@ private:
 
 
 	void calculateParticleAcceleration(int particleNumber);
+	void calculateParticleAccelerationC(int particleNumber);
 	void calculateBlackHoleAcceleration(int particleNumber);
 	void updateVelocityAndPositions(float time);
 	Particle generateNewParticle();
