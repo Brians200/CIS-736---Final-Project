@@ -46,7 +46,7 @@ int main( void )
 						setBlackHoleMass(0.0f)->
 						setBlackHoleRadius(5.0f)->
 						setDisappearingRadius(10000.0f)->
-						setCollisions(false)->
+						setCollisions(true)->
 						setNumberOfThreads(threads)->
 						setMinSpawnRadius(70)->
 						setmaxSpawnRadius(270)->
