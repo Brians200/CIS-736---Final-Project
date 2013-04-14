@@ -127,7 +127,10 @@ int main( void )
 	 double lastTime = glfwGetTime();
 
 	do{
-		
+		double currentTime = glfwGetTime();
+		pe.step((float)(currentTime-lastTime));
+		lastTime = currentTime;
+
 		vector<float> datav = pe.getPositions();
 		
 		glBufferData(GL_ARRAY_BUFFER, 3*pe.getNumberOfParticles()*sizeof(float), &datav[0], GL_STATIC_DRAW);
@@ -162,13 +165,6 @@ int main( void )
 		// Swap buffers
 		glfwSwapBuffers();
 		
-
-		double currentTime = glfwGetTime();
-		pe.step((float)(currentTime-lastTime));
-		lastTime = currentTime;
-
-
-
 	} // Check if the ESC key was pressed or the window was closed
 	while( glfwGetKey( GLFW_KEY_ESC ) != GLFW_PRESS &&
 		   glfwGetWindowParam( GLFW_OPENED ) );
