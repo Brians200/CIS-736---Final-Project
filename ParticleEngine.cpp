@@ -341,6 +341,25 @@ void integrate3(State &state,  float dt,int i)
 
 }
 
+//Improved Euler's method / Heun's method
+void integrate2(State &state,  float dt,int i)
+{
+	Derivative a = evaluate(state, 0.0f, Derivative(),i);
+	Derivative b = evaluate(state, dt, a, i);
+
+	Vector3 dxdt = VectorMath::multiply(1/2.0f,VectorMath::add(a.dposition,b.dposition));
+	Vector3 dvdt = VectorMath::multiply(1/2.0f,VectorMath::add(a.dvelocity,b.dvelocity));
+
+	state.position = VectorMath::add(state.position, VectorMath::multiply(dt, dxdt));
+	state.velocity = VectorMath::add(state.velocity,VectorMath::multiply(dt, dvdt));
+	
+	newPositions[i] = state.position;
+	newVelocities[i] = state.velocity;
+	newAccelerations[i] = dvdt;
+
+}
+
+
 //Euler's method
 void integrate1(State &state,  float dt,int i)
 {
@@ -366,7 +385,7 @@ void parallelAcceleration(int start,int stop, float time)
 			State state;
 			state.position = particleArray[i].position;
 			state.velocity = particleArray[i].velocity;
-			integrate4(state,time,i);
+			integrate2(state,time,i);
 	}
 }
 
