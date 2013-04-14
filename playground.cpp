@@ -38,7 +38,7 @@ int main( void )
 	GetNativeSystemInfo( &sysinfo );
 	int numCPU = sysinfo.dwNumberOfProcessors;
 
-	int particles = 800;
+	int particles = 1000;
 	int threads = numCPU;
 	ParticleEngine pe = (new ParticleEngineBuilder())->
 						setGravitationalConstant(30.0f)->

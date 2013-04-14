@@ -305,7 +305,8 @@ Derivative evaluate(const State &initial, float dt, const Derivative &d,int i)
 
 }
 
-void integrate(State &state,  float dt,int i)
+//Runge kutta 4th order
+void integrate4(State &state,  float dt,int i)
 {
 	Derivative a = evaluate(state,  0.0f, Derivative(),i);
 	Derivative b = evaluate(state,  dt*0.5f, a,i);
@@ -324,6 +325,26 @@ void integrate(State &state,  float dt,int i)
 
 }
 
+//Runge kutta 3rd order
+void integrate3(State &state,  float dt,int i)
+{
+	Derivative a = evaluate(state,  0.0f, Derivative(),i);
+	Derivative b = evaluate(state,  dt*0.5f, a,i);
+	Derivative c = evaluate(state,  dt, b,i);
+	
+
+	Vector3 dxdt =  VectorMath::multiply(1.0f/6.0f , VectorMath::add(a.dposition, VectorMath::add(VectorMath::multiply(4.0f,b.dposition),c.dposition)));
+	Vector3 dvdt =  VectorMath::multiply(1.0f/6.0f , VectorMath::add(a.dvelocity, VectorMath::add(VectorMath::multiply(4.0f,b.dvelocity),c.dvelocity)));
+
+	state.position = VectorMath::add(state.position, VectorMath::multiply(dt, dxdt));
+	state.velocity = VectorMath::add(state.velocity,VectorMath::multiply(dt, dvdt));
+	
+	newPositions[i] = state.position;
+	newVelocities[i] = state.velocity;
+	newAccelerations[i] = dvdt;
+
+}
+
 void parallelAcceleration(int start,int stop, float time)
 {
 	int a=3;
@@ -332,7 +353,7 @@ void parallelAcceleration(int start,int stop, float time)
 			State state;
 			state.position = particleArray[i].position;
 			state.velocity = particleArray[i].velocity;
-			integrate(state,time,i);
+			integrate3(state,time,i);
 	}
 }
 
