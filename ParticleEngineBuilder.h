@@ -19,6 +19,7 @@ public:
 	ParticleEngineBuilder* setspawnVelocity(float value);
 	ParticleEngineBuilder* setmaxZSpawnDistance(int value);
 	ParticleEngineBuilder* setnumberOfParticles(int value);
+	ParticleEngineBuilder* setIntegrator(int value);
 
 
 	ParticleEngine Build();

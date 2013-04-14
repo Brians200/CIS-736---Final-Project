@@ -21,6 +21,7 @@ float minSpawnRadius;
 int maxSpawnRadius;
 float spawnVelocity;
 int maxZSpawnDistance;
+int integrator;
 
 vector<Vector3> newPositions;
 vector<Vector3> newVelocities;
@@ -30,7 +31,7 @@ ParticleEngine::ParticleEngine(void)
 {
 }
 
-ParticleEngine::ParticleEngine(float gp, float rMinp,float blackHoleMassp, float blackHoleRadiusp, float disappearingRadiusp,float minSpawnRadiusp, int maxSpawnRadiusp, float spawnVelocityp, int maxZSpawnDistancep, int threadsp, int particlesp, bool collisionsp)
+ParticleEngine::ParticleEngine(float gp, float rMinp,float blackHoleMassp, float blackHoleRadiusp, float disappearingRadiusp,float minSpawnRadiusp, int maxSpawnRadiusp, float spawnVelocityp, int maxZSpawnDistancep, int threadsp, int particlesp, bool collisionsp, int integratorp)
 {
 	g = gp;
 	rMin = rMinp;
@@ -44,6 +45,7 @@ ParticleEngine::ParticleEngine(float gp, float rMinp,float blackHoleMassp, float
 	collisions = collisionsp;
 	numberOfThreads = threadsp;
 	numberOfParticles = particlesp;
+	integrator = integratorp;
 
 	srand ((unsigned int)time(NULL));
 	previousAngle = 0.0f;
@@ -250,10 +252,6 @@ Vector3 calculateBlackHoleAcceleration(int particleNumber, Vector3 position)
 		float newy = -acceleration*position.y*radiusInverse;
 		float newz = -acceleration*position.z*radiusInverse;
 
-		//particleArray[particleNumber].acceleration.x += newx;
-		//particleArray[particleNumber].acceleration.y += newy;
-		//particleArray[particleNumber].acceleration.z += newz;
-
 		return Vector3(newx,newy,newz);
 	}
 	else if(disappearingRadius> radius)
@@ -377,15 +375,48 @@ void integrate1(State &state,  float dt,int i)
 
 }
 
-void parallelAcceleration(int start,int stop, float time)
+void parallelAcceleration(int start,int stop, float time, int integrator)
 {
-	int a=3;
-	for(int i=start; i<=stop; i++)
-		{
-			State state;
-			state.position = particleArray[i].position;
-			state.velocity = particleArray[i].velocity;
-			integrate2(state,time,i);
+	
+	if(integrator == 1)
+	{//Euler's Method
+		for(int i=start; i<=stop; i++)
+			{
+				State state;
+				state.position = particleArray[i].position;
+				state.velocity = particleArray[i].velocity;
+				integrate1(state,time,i);
+		}
+	}
+	else if(integrator == 2)
+	{//Improved Euler / Hoen
+		for(int i=start; i<=stop; i++)
+			{
+				State state;
+				state.position = particleArray[i].position;
+				state.velocity = particleArray[i].velocity;
+				integrate2(state,time,i);
+		}
+	}
+	else if(integrator == 3)
+	{//Runge Kutta 3
+		for(int i=start; i<=stop; i++)
+			{
+				State state;
+				state.position = particleArray[i].position;
+				state.velocity = particleArray[i].velocity;
+				integrate3(state,time,i);
+		}
+	}
+	else if(integrator == 4)
+	{//Runge Kutta 4
+		for(int i=start; i<=stop; i++)
+			{
+				State state;
+				state.position = particleArray[i].position;
+				state.velocity = particleArray[i].velocity;
+				integrate4(state,time,i);
+		}
 	}
 }
 
@@ -403,7 +434,7 @@ void ParticleEngine::step(float time)
 
 	for(int i=0; i<numberOfThreads; i++)
 	{ 
-		threads.push_back(std::thread(parallelAcceleration,i*numberOfParticles/numberOfThreads, (i+1)*numberOfParticles/numberOfThreads-1, time));
+		threads.push_back(std::thread(parallelAcceleration,i*numberOfParticles/numberOfThreads, (i+1)*numberOfParticles/numberOfThreads-1, time,integrator));
 	}
 
 	for(int j = 0; j<numberOfThreads; j++)

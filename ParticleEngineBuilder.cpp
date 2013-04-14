@@ -12,6 +12,7 @@ int maxSpawnRadiusBuilder;
 float spawnVelocityBuilder;
 int maxZSpawnDistanceBuilder;
 int numberOfParticlesBuilder;
+int integratorBuilder;
 
 ParticleEngineBuilder::ParticleEngineBuilder(){
 							gBuilder=30.0f;
@@ -25,7 +26,8 @@ ParticleEngineBuilder::ParticleEngineBuilder(){
 							minSpawnRadiusBuilder = 70;
 							maxSpawnRadiusBuilder = 270;
 							spawnVelocityBuilder = 12.0f;
-							maxZSpawnDistanceBuilder = 10;}
+							maxZSpawnDistanceBuilder = 10;
+							integratorBuilder = 4;}
 
 	ParticleEngineBuilder* ParticleEngineBuilder::setGravitationalConstant(float value){gBuilder=value; return this;}
 	ParticleEngineBuilder* ParticleEngineBuilder::setMinimumRadius(float value){rMinBuilder = value; return this;}
@@ -39,5 +41,6 @@ ParticleEngineBuilder::ParticleEngineBuilder(){
 	ParticleEngineBuilder* ParticleEngineBuilder::setspawnVelocity(float value){spawnVelocityBuilder = value; return this;}
 	ParticleEngineBuilder* ParticleEngineBuilder::setmaxZSpawnDistance(int value){maxZSpawnDistanceBuilder = value; return this;}
 	ParticleEngineBuilder* ParticleEngineBuilder::setnumberOfParticles(int value){numberOfParticlesBuilder = value; return this;}
+	ParticleEngineBuilder* ParticleEngineBuilder::setIntegrator(int value){integratorBuilder = value; return this;}
 
-	ParticleEngine ParticleEngineBuilder::Build(){ return ParticleEngine(gBuilder,rMinBuilder,blackHoleMassBuilder,blackHoleRadiusBuilder,disappearingRadiusBuilder,minSpawnRadiusBuilder,maxSpawnRadiusBuilder,spawnVelocityBuilder,maxZSpawnDistanceBuilder,numberOfThreadsBuilder,numberOfParticlesBuilder,collisionsBuilder);}
+	ParticleEngine ParticleEngineBuilder::Build(){ return ParticleEngine(gBuilder,rMinBuilder,blackHoleMassBuilder,blackHoleRadiusBuilder,disappearingRadiusBuilder,minSpawnRadiusBuilder,maxSpawnRadiusBuilder,spawnVelocityBuilder,maxZSpawnDistanceBuilder,numberOfThreadsBuilder,numberOfParticlesBuilder,collisionsBuilder,integratorBuilder);}
