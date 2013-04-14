@@ -38,7 +38,7 @@ ParticleEngine::ParticleEngine(float gp, float rMinp,float blackHoleMassp, float
 	blackHoleRadius = blackHoleRadiusp;
 	disappearingRadius = disappearingRadiusp;
 	minSpawnRadius = minSpawnRadiusp;
-	maxSpawnRadius = maxSpawnRadiusp - minSpawnRadiusp;
+	maxSpawnRadius = (int)(maxSpawnRadiusp - minSpawnRadiusp);
 	spawnVelocity = spawnVelocityp;
 	maxZSpawnDistance = maxZSpawnDistancep;
 	collisions = collisionsp;
@@ -176,7 +176,7 @@ int ParticleEngine::getNumberOfParticles()
 	return numberOfParticles;
 }
 
-Vector3 calculateParticleAcceleration(int particleNumber)
+Vector3 calculateParticleAcceleration(int particleNumber,Vector3 position)
 {
 	float ax,ay,az;
 	ax = ay = az = 0;
@@ -192,7 +192,7 @@ Vector3 calculateParticleAcceleration(int particleNumber)
 		Particle otherParticle = particleArray[i];
 
 		//calculate differences between their coordinates
-		Vector3 difference = VectorMath::difference(otherParticle.position, thisParticle.position);
+		Vector3 difference = VectorMath::difference(otherParticle.position, position);
 
 		//calculate the distance between them
 		float radius = sqrtf(difference.x*difference.x + difference.y *difference.y + difference.z*difference.z);
@@ -228,19 +228,15 @@ Vector3 calculateParticleAcceleration(int particleNumber)
 
 }
 
-Vector3 calculateBlackHoleAcceleration(int particleNumber)
+Vector3 calculateBlackHoleAcceleration(int particleNumber, Vector3 position)
 {
-	//TODO: decide if we want to remove stars that are too far away from the middle
-
-	//TODO: decide if we are going to have the blackhole eat things that are too close
-
 	//if there is no black hole, no point in checking
 	if(blackHoleMass == 0.0) return Vector3(0,0,0);
 
 	Particle thisParticle = particleArray[particleNumber];
 
 	//find out how far away from the blackhole it is
-	float radius = sqrtf(thisParticle.position.x*thisParticle.position.x + thisParticle.position.y*thisParticle.position.y + thisParticle.position.z*thisParticle.position.z);
+	float radius = sqrtf(position.x*position.x + position.y*position.y + position.z*position.z);
 
 	if(radius>blackHoleRadius && radius < disappearingRadius)
 	{
@@ -250,9 +246,9 @@ Vector3 calculateBlackHoleAcceleration(int particleNumber)
 
 		float acceleration = g*blackHoleMass*thisParticle.mass*radiusInverse*radiusInverse;
 
-		float newx = -acceleration*thisParticle.position.x*radiusInverse;
-		float newy = -acceleration*thisParticle.position.y*radiusInverse;
-		float newz = -acceleration*thisParticle.position.z*radiusInverse;
+		float newx = -acceleration*position.x*radiusInverse;
+		float newy = -acceleration*position.y*radiusInverse;
+		float newz = -acceleration*position.z*radiusInverse;
 
 		//particleArray[particleNumber].acceleration.x += newx;
 		//particleArray[particleNumber].acceleration.y += newy;
@@ -287,8 +283,8 @@ struct Derivative
 
 Vector3 acceleration(const State &state,int i)
 {
-         Vector3 output = calculateParticleAcceleration(i);
-		 output = VectorMath::add(output,calculateBlackHoleAcceleration(i));
+         Vector3 output = calculateParticleAcceleration(i,state.position);
+		 output = VectorMath::add(output,calculateBlackHoleAcceleration(i,state.position));
 		 return output;
 }
 
@@ -345,6 +341,23 @@ void integrate3(State &state,  float dt,int i)
 
 }
 
+//Euler's method
+void integrate1(State &state,  float dt,int i)
+{
+	Derivative a = evaluate(state, 0.0f, Derivative(),i);
+	
+	Vector3 dxdt = a.dposition;
+	Vector3 dvdt = a.dvelocity;
+
+	state.position = VectorMath::add(state.position, VectorMath::multiply(dt, dxdt));
+	state.velocity = VectorMath::add(state.velocity,VectorMath::multiply(dt, dvdt));
+	
+	newPositions[i] = state.position;
+	newVelocities[i] = state.velocity;
+	newAccelerations[i] = dvdt;
+
+}
+
 void parallelAcceleration(int start,int stop, float time)
 {
 	int a=3;
@@ -353,7 +366,7 @@ void parallelAcceleration(int start,int stop, float time)
 			State state;
 			state.position = particleArray[i].position;
 			state.velocity = particleArray[i].velocity;
-			integrate3(state,time,i);
+			integrate4(state,time,i);
 	}
 }
 
