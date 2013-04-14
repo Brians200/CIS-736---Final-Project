@@ -95,6 +95,16 @@ Particle generateNewParticle()
 	return retern;
 }
 
+void ParticleEngine::addParticle(Vector3 position, Vector3 velocity, float mass)
+{
+	numberOfParticles++;
+	Particle result;
+	result.position = position;
+	result.velocity = velocity;
+	result.mass = mass;
+	particleArray.push_back(result);
+}
+
 void ParticleEngine::increaseNumberOfParticles(int number)
 {
 	numberOfParticles+=number;

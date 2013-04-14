@@ -15,6 +15,7 @@ public:
 
 	void increaseNumberOfParticles(int number);
 	void decreaseNumberOfParticles(int number);
+	void addParticle(Vector3 position, Vector3 velocity, float mass);
 
 	int getNumberOfParticles();
 	float getParticleSize(int particleNumber);
