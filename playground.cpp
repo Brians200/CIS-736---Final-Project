@@ -38,7 +38,7 @@ int main( void )
 	GetNativeSystemInfo( &sysinfo );
 	int numCPU = sysinfo.dwNumberOfProcessors;
 
-	int particles = 1500;
+	int particles = 800;
 	int threads = numCPU;
 	ParticleEngine pe = (new ParticleEngineBuilder())->
 						setGravitationalConstant(30.0f)->
@@ -46,7 +46,7 @@ int main( void )
 						setBlackHoleMass(0.0f)->
 						setBlackHoleRadius(5.0f)->
 						setDisappearingRadius(10000.0f)->
-						setCollisions(true)->
+						setCollisions(false)->
 						setNumberOfThreads(threads)->
 						setMinSpawnRadius(70)->
 						setmaxSpawnRadius(270)->

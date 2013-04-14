@@ -22,6 +22,10 @@ int maxSpawnRadius;
 float spawnVelocity;
 int maxZSpawnDistance;
 
+vector<Vector3> newPositions;
+vector<Vector3> newVelocities;
+vector<Vector3> newAccelerations;
+
 ParticleEngine::ParticleEngine(void)
 {
 }
@@ -172,7 +176,7 @@ int ParticleEngine::getNumberOfParticles()
 	return numberOfParticles;
 }
 
-void calculateParticleAcceleration(int particleNumber)
+Vector3 calculateParticleAcceleration(int particleNumber)
 {
 	float ax,ay,az;
 	ax = ay = az = 0;
@@ -220,22 +224,18 @@ void calculateParticleAcceleration(int particleNumber)
 		az += acceleration * difference.z * radiusInverse;
 
 	}
-
-
-	particleArray[particleNumber].acceleration.x = ax;
-	particleArray[particleNumber].acceleration.y = ay;
-	particleArray[particleNumber].acceleration.z = az;
+	return Vector3(ax,ay,az);
 
 }
 
-void calculateBlackHoleAcceleration(int particleNumber)
+Vector3 calculateBlackHoleAcceleration(int particleNumber)
 {
 	//TODO: decide if we want to remove stars that are too far away from the middle
 
 	//TODO: decide if we are going to have the blackhole eat things that are too close
 
 	//if there is no black hole, no point in checking
-	if(blackHoleMass == 0.0) return;
+	if(blackHoleMass == 0.0) return Vector3(0,0,0);
 
 	Particle thisParticle = particleArray[particleNumber];
 
@@ -254,9 +254,11 @@ void calculateBlackHoleAcceleration(int particleNumber)
 		float newy = -acceleration*thisParticle.position.y*radiusInverse;
 		float newz = -acceleration*thisParticle.position.z*radiusInverse;
 
-		particleArray[particleNumber].acceleration.x += newx;
-		particleArray[particleNumber].acceleration.y += newy;
-		particleArray[particleNumber].acceleration.z += newz;
+		//particleArray[particleNumber].acceleration.x += newx;
+		//particleArray[particleNumber].acceleration.y += newy;
+		//particleArray[particleNumber].acceleration.z += newz;
+
+		return Vector3(newx,newy,newz);
 	}
 	else if(disappearingRadius> radius)
 	{
@@ -264,89 +266,102 @@ void calculateBlackHoleAcceleration(int particleNumber)
 	}
 	else
 	{
-		
 		blackHoleMass += thisParticle.mass;
 		particleArray[particleNumber] = generateNewParticle();
 	}
+
+	return Vector3(0,0,0);
 }
 
-void updateVelocityAndPositions(float time)
+struct State
 {
-	for(int i = 0; i < numberOfParticles; i++)
-	{
-		//delta V = A * delta T
-		particleArray[i].velocity.x += particleArray[i].acceleration.x * time;
-		particleArray[i].velocity.y += particleArray[i].acceleration.y * time;
-		particleArray[i].velocity.z += particleArray[i].acceleration.z * time;
+	Vector3 position;
+	Vector3 velocity;
+};
 
-		//delta P = V * delta T
-		particleArray[i].position.x += particleArray[i].velocity.x * time;
-		particleArray[i].position.y += particleArray[i].velocity.y * time;
-		particleArray[i].position.z += particleArray[i].velocity.z * time;
+struct Derivative
+{
+	Vector3 dposition; // derivative of position = velocity
+	Vector3 dvelocity; // derivative of velocity = acceleration;
+};
 
-	}
+Vector3 acceleration(const State &state,int i)
+{
+         Vector3 output = calculateParticleAcceleration(i);
+		 output = VectorMath::add(output,calculateBlackHoleAcceleration(i));
+		 return output;
 }
 
-void parallelAcceleration(int start,int stop)
+Derivative evaluate(const State &initial, float dt, const Derivative &d,int i)
 {
-    int a=3;
+	State state;
+	state.position = VectorMath::add(initial.position,VectorMath::multiply(dt,d.dposition));
+	state.velocity = VectorMath::add(initial.velocity,VectorMath::multiply(dt,d.dvelocity));
+
+	Derivative output;
+	output.dposition = state.velocity;
+	output.dvelocity = acceleration(state,i);
+	return output;
+
+}
+
+void integrate(State &state,  float dt,int i)
+{
+	Derivative a = evaluate(state,  0.0f, Derivative(),i);
+	Derivative b = evaluate(state,  dt*0.5f, a,i);
+	Derivative c = evaluate(state,  dt*0.5f, b,i);
+	Derivative d = evaluate(state,  dt, c,i);
+
+	Vector3 dxdt = VectorMath::multiply(1.0f/6.0f , (VectorMath::add(VectorMath::add(a.dposition, VectorMath::multiply(2.0f,(VectorMath::add(b.dposition,c.dposition)))) , d.dposition)));
+	Vector3 dvdt = VectorMath::multiply(1.0f/6.0f , (VectorMath::add(VectorMath::add(a.dvelocity, VectorMath::multiply(2.0f,(VectorMath::add(b.dvelocity,c.dvelocity)))) , d.dvelocity)));
+
+	state.position = VectorMath::add(state.position, VectorMath::multiply(dt, dxdt));
+	state.velocity = VectorMath::add(state.velocity,VectorMath::multiply(dt, dvdt));
+	
+	newPositions[i] = state.position;
+	newVelocities[i] = state.velocity;
+	newAccelerations[i] = dvdt;
+
+}
+
+void parallelAcceleration(int start,int stop, float time)
+{
+	int a=3;
 	for(int i=start; i<=stop; i++)
-	{
-		//calculate acceleration from the other stars
-		calculateParticleAcceleration(i);
-
-		//calculate the acceleration from the black hole
-		//this is to help encourage the particles to stay towards the origin
-		calculateBlackHoleAcceleration(i);
+		{
+			State state;
+			state.position = particleArray[i].position;
+			state.velocity = particleArray[i].velocity;
+			integrate(state,time,i);
 	}
 }
 
-void parallelVelocityAndPosition(int start, int stop, float time)
-{
-	//update start velocity and position
-	for(int i = start; i < stop; i++)
-	{
-		//delta V = A * delta T
-		particleArray[i].velocity.x += particleArray[i].acceleration.x * time;
-		particleArray[i].velocity.y += particleArray[i].acceleration.y * time;
-		particleArray[i].velocity.z += particleArray[i].acceleration.z * time;
 
-		//delta P = V * delta T
-		particleArray[i].position.x += particleArray[i].velocity.x * time;
-		particleArray[i].position.y += particleArray[i].velocity.y * time;
-		particleArray[i].position.z += particleArray[i].velocity.z * time;
 
-	}
-}
 
 void ParticleEngine::step(float time)
 {
-	//Split all the particles into threads, so the acceleration can be calculated
+
 	vector<std::thread> threads;
-	for(int i=0;i<numberOfThreads;i++)
-	{
-		threads.push_back(std::thread(parallelAcceleration,i*numberOfParticles/numberOfThreads, (i+1)*numberOfParticles/numberOfThreads-1));
+
+	newPositions = vector<Vector3>(numberOfParticles);
+	newVelocities = vector<Vector3>(numberOfParticles);
+	newAccelerations = vector<Vector3>(numberOfParticles);
+
+	for(int i=0; i<numberOfThreads; i++)
+	{ 
+		threads.push_back(std::thread(parallelAcceleration,i*numberOfParticles/numberOfThreads, (i+1)*numberOfParticles/numberOfThreads-1, time));
 	}
 
-	for(int j=0;j<numberOfThreads;j++)
+	for(int j = 0; j<numberOfThreads; j++)
 	{
 		threads[j].join();
 	}
 
-	//For some reason, it is faster not to parallelize the velocity update...
-
-	/*threads.clear();
-	for(int i=0;i<numberOfThreads;i++)
+	for(int k=0; k<numberOfParticles;k++)
 	{
-		threads.push_back(std::thread(parallelVelocityAndPosition,i*numberOfParticles/numberOfThreads, (i+1)*numberOfParticles/numberOfThreads-1,time));
+		particleArray[k].position = newPositions[k];
+		particleArray[k].velocity = newVelocities[k];
+		particleArray[k].acceleration = newAccelerations[k];
 	}
-
-	for(int j=0;j<numberOfThreads;j++)
-	{
-		threads[j].join();
-	}*/
-	
-	updateVelocityAndPositions( time);
-	
-
 }
