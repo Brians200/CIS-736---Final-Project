@@ -39,7 +39,7 @@ int main( void )
 	int numCPU = sysinfo.dwNumberOfProcessors;
 
 	int threads = numCPU;
-	int particles = 100*threads;
+	int particles = 66*threads;
 	ParticleEngine pe = (new ParticleEngineBuilder())->
 						setGravitationalConstant(30.0f)->
 						setMinimumRadius(5.0f)->

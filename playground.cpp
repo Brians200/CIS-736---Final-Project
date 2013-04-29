@@ -53,7 +53,7 @@ int main( void )
 						setspawnVelocity(12.0f)->
 						setmaxZSpawnDistance(10)->
 						setnumberOfParticles(particles)->
-						setIntegrator(4)->
+						setIntegrator(3)->
 						Build();
 	// Initialise GLFW
 	if( !glfwInit() )

@@ -1,10 +1,6 @@
 #include "ParticleEngine.h"
-#include <math.h>
-#include <cstdlib>
-#include "VectorMath.h"
-#include <time.h>
-#include <algorithm>
-#include <thread>
+
+
 
 const float PI = std::atanf(1.0f)*4.0f;
 int numberOfParticles;
@@ -26,6 +22,13 @@ int integrator;
 vector<Vector3> newPositions;
 vector<Vector3> newVelocities;
 vector<Vector3> newAccelerations;
+
+list<vector<int>> listOfCollisions;
+list<vector<int>> blackHoleRemovals;
+
+
+mutex mutexLock;
+mutex mutexLock2;
 
 ParticleEngine::ParticleEngine(void)
 {
@@ -212,7 +215,7 @@ Vector3 calculateParticleAcceleration(int particleNumber,Vector3 position)
 		//we are setting the radius of the particle to be the mass/100
 		//so if the radius between the centers is less than the sum of both radii,
 		//they have collided
-		if(collisions && radius<thisParticle.radius+otherParticle.radius)
+		if(collisions && radius<thisParticle.radius+otherParticle.radius && particleNumber < i)
 		{
 			particleArray[particleNumber].velocity.x = (thisParticle.velocity.x * thisParticle.mass + otherParticle.velocity.x*otherParticle.mass) / (thisParticle.mass + otherParticle.mass);
 			particleArray[particleNumber].velocity.y = (thisParticle.velocity.y * thisParticle.mass + otherParticle.velocity.y*otherParticle.mass) / (thisParticle.mass + otherParticle.mass);
@@ -220,8 +223,17 @@ Vector3 calculateParticleAcceleration(int particleNumber,Vector3 position)
 
 			particleArray[particleNumber].setMass(thisParticle.mass+otherParticle.mass);
 
-			//replace the second particle
-			particleArray[i] = generateNewParticle();
+			//Place the particles in a list to be removed
+			mutexLock.lock();
+			
+			vector<int> coll;
+			coll.push_back(particleNumber);
+			coll.push_back(i);
+
+			listOfCollisions.push_back(coll);
+
+			mutexLock.unlock();
+			
 		}
 	
 		//get the inverse, with a slight fudge factor to prevent dividing by really small numbers, cause the particles to fling off when they get close
@@ -264,14 +276,35 @@ Vector3 calculateBlackHoleAcceleration(int particleNumber, Vector3 position)
 
 		return Vector3(newx,newy,newz);
 	}
-	else if(disappearingRadius> radius)
+	else if(disappearingRadius> radius) //too far away
 	{
-		particleArray[particleNumber] = generateNewParticle();
+		//particleArray[particleNumber] = generateNewParticle();
+		mutexLock2.lock();
+			
+		vector<int> coll;
+		coll.push_back(-1);
+		coll.push_back(particleNumber);
+
+		blackHoleRemovals.push_back(coll);
+
+		mutexLock2.unlock();
 	}
-	else
+	else // inside the black hole
 	{
+
+		mutexLock2.lock();
 		blackHoleMass += thisParticle.mass;
-		particleArray[particleNumber] = generateNewParticle();
+		thisParticle.setMass(0);
+
+		//particleArray[particleNumber] = generateNewParticle();
+				
+		vector<int> coll;
+		coll.push_back(-1);
+		coll.push_back(particleNumber);
+
+		blackHoleRemovals.push_back(coll);
+
+		mutexLock2.unlock();
 	}
 
 	return Vector3(0,0,0);
@@ -457,5 +490,33 @@ void ParticleEngine::step(float time)
 		particleArray[k].position = newPositions[k];
 		particleArray[k].velocity = newVelocities[k];
 		particleArray[k].acceleration = newAccelerations[k];
+	}
+
+	//remove collided particles
+	if(listOfCollisions.size() > 0)
+	{
+		list<int> removing;
+		while(0<listOfCollisions.size())
+		{
+			removing.push_back(listOfCollisions.front()[1]);
+			listOfCollisions.pop_front();
+		}
+
+		while(0<blackHoleRemovals.size())
+		{
+			removing.push_back(blackHoleRemovals.front()[1]);
+			blackHoleRemovals.pop_front();
+		}
+
+		removing.sort();
+		removing.unique();
+
+
+		while(0<removing.size())
+		{
+			particleArray.erase(particleArray.begin()+removing.back());
+			removing.pop_back();
+			numberOfParticles -- ;
+		}
 	}
 }
