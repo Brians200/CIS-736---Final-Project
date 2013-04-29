@@ -222,6 +222,7 @@ Vector3 calculateParticleAcceleration(int particleNumber,Vector3 position)
 			particleArray[particleNumber].velocity.z = (thisParticle.velocity.z * thisParticle.mass + otherParticle.velocity.z*otherParticle.mass) / (thisParticle.mass + otherParticle.mass);
 
 			particleArray[particleNumber].setMass(thisParticle.mass+otherParticle.mass);
+			particleArray[i].setMass(0);
 
 			//Place the particles in a list to be removed
 			mutexLock.lock();
