@@ -76,5 +76,4 @@ vector<float> ColorPicker::getColor(float hue, float saturation, float value)
 	retern.push_back(b1+m);
 
 	return retern;
-
 }

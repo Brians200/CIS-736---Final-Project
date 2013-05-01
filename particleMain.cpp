@@ -26,7 +26,7 @@ using namespace glm;
 
 int main( void )
 {
-
+	int colorOption = 0;
 	ColorPicker cp;
 	vector<float> color = cp.getColor(0,0,1); //white
 	color = cp.getColor(0,0,0); //black
@@ -39,7 +39,7 @@ int main( void )
 	int numCPU = sysinfo.dwNumberOfProcessors;
 
 	int threads = numCPU;
-	int particles = 66*threads;
+	int particles = numCPU*150;
 	ParticleEngine pe = (new ParticleEngineBuilder())->
 						setGravitationalConstant(30.0f)->
 						setMinimumRadius(5.0f)->
@@ -113,9 +113,15 @@ int main( void )
 	};
 	static const GLushort g_element_buffer_data[] = { 0, 1, 2 };
 
+	vector<float> datav = pe.getPositions();
 	GLuint vertexbuffer;
 	glGenBuffers(1, &vertexbuffer);
 	glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
+	glBufferData(GL_ARRAY_BUFFER, 3*pe.getNumberOfParticles()*sizeof(float), &datav[0], GL_STREAM_DRAW);
+
+	GLuint colorBuffer;
+	glGenBuffers(1, &colorBuffer);
+	glBindBuffer(GL_ARRAY_BUFFER, colorBuffer);
 	
 	 double lastTime = glfwGetTime();
 
@@ -123,10 +129,120 @@ int main( void )
 		double currentTime = glfwGetTime();
 		pe.step((float)(currentTime-lastTime));
 		lastTime = currentTime;
+	
+		int numParticles = pe.getNumberOfParticles();
 
 		vector<float> datav = pe.getPositions();
-		
-		glBufferData(GL_ARRAY_BUFFER, 3*pe.getNumberOfParticles()*sizeof(float), &datav[0], GL_STATIC_DRAW);
+		glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
+		glBufferData(GL_ARRAY_BUFFER, 3*numParticles*sizeof(float), &datav[0], GL_STREAM_DRAW);
+
+		// Decrease Number of Particles
+		if (glfwGetKey( GLFW_KEY_KP_SUBTRACT ) == GLFW_PRESS){
+			pe.decreaseNumberOfParticles(50);
+		}
+		// Increase Number of Particles
+		if (glfwGetKey( GLFW_KEY_KP_ADD ) == GLFW_PRESS){
+			pe.increaseNumberOfParticles(50);
+		}
+
+		// Set Integrator Euler
+		if (glfwGetKey( '1' ) == GLFW_PRESS){
+			pe.setIntegrator(1);
+		}
+		// Set Integrator Euler
+		if (glfwGetKey( '2' ) == GLFW_PRESS){
+			pe.setIntegrator(2);
+		}
+		// Set Integrator Euler
+		if (glfwGetKey( '3' ) == GLFW_PRESS){
+			pe.setIntegrator(3);
+		}
+		// Set Integrator Euler
+		if (glfwGetKey( '4' ) == GLFW_PRESS){
+			pe.setIntegrator(4);
+		}
+
+		// Set Color Acceleration
+		if (glfwGetKey( 'A' ) == GLFW_PRESS){
+			colorOption = 1;
+		}
+		// Set Color Velocity
+		if (glfwGetKey( 'V' ) == GLFW_PRESS){
+			colorOption = 2;
+		}
+		// Set Color Mass
+		if (glfwGetKey( 'M' ) == GLFW_PRESS){
+			colorOption = 3;
+		}
+		// Set Color None All particles White
+		if (glfwGetKey( 'N' ) == GLFW_PRESS){
+			colorOption = 0;
+		}
+
+		vector<float> colorData(3*numParticles);
+
+		ColorPicker cp;
+		if(colorOption == 0){//No Coloring
+			for(int i=0; i<numParticles; i++){
+				vector<float> newColor = cp.getColor(0,0,1);
+				float blue = newColor.back();
+				newColor.pop_back();
+				float green = newColor.back();
+				newColor.pop_back();
+				float red = newColor.back();
+				newColor.pop_back();
+				colorData[3*i]=red;
+				colorData[3*i+1]=green;
+				colorData[3*i+2]=blue;
+			}
+		}
+		else if(colorOption == 1){//Color Acceleration
+			for(int i=0; i<numParticles; i++){
+				float acceleration = pe.getAcceleration(i);
+				vector<float> newColor = cp.getColor(1.0,acceleration,1);
+				float blue = newColor.back();
+				newColor.pop_back();
+				float green = newColor.back();
+				newColor.pop_back();
+				float red = newColor.back();
+				newColor.pop_back();
+				colorData[3*i]=red;
+				colorData[3*i+1]=green;
+				colorData[3*i+2]=blue;
+			}
+		}
+		else if(colorOption == 2){//Color Velocity
+			for(int i=0; i<numParticles; i++){
+				float velocity = pe.getVelocity(i);
+				vector<float> newColor = cp.getColor(240,velocity,1);
+				float blue = newColor.back();
+				newColor.pop_back();
+				float green = newColor.back();
+				newColor.pop_back();
+				float red = newColor.back();
+				newColor.pop_back();
+				colorData[3*i]=red;
+				colorData[3*i+1]=green;
+				colorData[3*i+2]=blue;
+			}
+		}
+		else if(colorOption == 3){//Color Mass
+			for(int i=0; i<numParticles; i++){
+				float mass = pe.getMass(i);
+				vector<float> newColor = cp.getColor(120,mass,1);
+				float blue = newColor.back();
+				newColor.pop_back();
+				float green = newColor.back();
+				newColor.pop_back();
+				float red = newColor.back();
+				newColor.pop_back();
+				colorData[3*i]=red;
+				colorData[3*i+1]=green;
+				colorData[3*i+2]=blue;
+			}
+		}
+		glBindBuffer(GL_ARRAY_BUFFER, colorBuffer);
+		glBufferData(GL_ARRAY_BUFFER, 3*numParticles*sizeof(float), &colorData[0], GL_STREAM_DRAW);
 
 		// Clear the screen
 		glClear( GL_COLOR_BUFFER_BIT );
@@ -160,10 +276,25 @@ int main( void )
 			(void*)0            // array buffer offset
 		);
 
-		// Draw the triangle !
-		glDrawArrays(GL_POINTS, 0, pe.getNumberOfParticles()); // 3 indices starting at 0 -> 1 triangle
+
+		// 2nd attribute buffer : colors
+		glEnableVertexAttribArray(1);
+		glBindBuffer(GL_ARRAY_BUFFER, colorBuffer);
+		glVertexAttribPointer(
+			1,                  
+			3,                  
+			GL_FLOAT,           
+			GL_FALSE,           // normalized?
+			0,                  // stride
+			(void*)0            // array buffer offset
+		);
+		
+
+		// Draw the Particles !
+		glDrawArrays(GL_POINTS, 0, numParticles);
 
 		glDisableVertexAttribArray(0);
+		glDisableVertexAttribArray(1);
 
 		// Swap buffers
 		glfwSwapBuffers();
@@ -174,6 +305,7 @@ int main( void )
 
 	// Cleanup VBO and shader
 	glDeleteBuffers(1, &vertexbuffer);
+	glDeleteBuffers(1, &colorBuffer);
 	glDeleteProgram(programID);
 	glDeleteVertexArrays(1, &VertexArrayID);
 

@@ -8,6 +8,7 @@ using namespace glm;
 
 #include "controls.hpp"
 
+
 glm::mat4 ViewMatrix;
 glm::mat4 ProjectionMatrix;
 
@@ -20,7 +21,7 @@ glm::mat4 getProjectionMatrix(){
 
 
 // Initial position : on +Z
-glm::vec3 position = glm::vec3(0,0,1000); 
+glm::vec3 position = glm::vec3(0,0,2000); 
 // Initial horizontal angle : toward -Z
 float horizontalAngle = 34.55f;
 // Initial vertical angle : none
@@ -30,7 +31,6 @@ float initialFoV = 45.0f;
 
 float speed = 100.0f; // 3 units / second
 float mouseSpeed = 0.005f;
-
 
 void computeMatricesFromInputs(){
 
@@ -56,6 +56,7 @@ void computeMatricesFromInputs(){
 		glfwSetMouseWheel( 0 );
 	}
 
+	
 	// Compute new orientation
 	horizontalAngle += mouseSpeed * float(1024/2 - xpos );
 	verticalAngle   += mouseSpeed * float( 768/2 - ypos );

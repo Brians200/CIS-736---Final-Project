@@ -31,6 +31,8 @@ public:
 	float getAcceleration(int particleNumber);
 	float getVelocity(int particleNumber);
 
+	void setIntegrator(int integratorNumber);
+
 private:
 	ParticleEngine(void);
 

@@ -57,6 +57,11 @@ ParticleEngine::ParticleEngine(float gp, float rMinp,float blackHoleMassp, float
 
 }
 
+void ParticleEngine::setIntegrator(int integratorNumber)
+{
+	integrator = integratorNumber;
+}
+
 float ParticleEngine::getParticleSize(int particleNumber)
 {
 	return particleArray[particleNumber].radius;
