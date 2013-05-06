@@ -9,6 +9,8 @@
 
 // Include GLFW
 #include <GL/glfw.h>
+#include <GL/glext.h>
+#include <gl/glut.h>
 
 // Include GLM
 #include <glm/glm.hpp>
@@ -21,25 +23,19 @@ using namespace glm;
 #include "ParticleEngine.h"
 #include "ParticleEngineBuilder.h"
 #include "ColorPicker.h"
+#include "TGAWriter.h"
 
 #include <vector>
+#include <iostream>
 
 int main( void )
 {
-	int colorOption = 0;
-	ColorPicker cp;
-	vector<float> color = cp.getColor(0,0,1); //white
-	color = cp.getColor(0,0,0); //black
-	color = cp.getColor(0,1,1); //Neon red
-	color = cp.getColor(120,1,1); //Neon green
-	color = cp.getColor(240,1,1); //Neon Blue
-
 	_SYSTEM_INFO sysinfo;
 	GetNativeSystemInfo( &sysinfo );
 	int numCPU = sysinfo.dwNumberOfProcessors;
 
 	int threads = numCPU;
-	int particles = numCPU*66;
+	int particles = 1000;
 	ParticleEngine pe = (new ParticleEngineBuilder())->
 						setGravitationalConstant(30.0f)->
 						setMinimumRadius(5.0f)->
@@ -62,13 +58,13 @@ int main( void )
 		return -1;
 	}
 
-	glfwOpenWindowHint(GLFW_FSAA_SAMPLES, 4);
+	glfwOpenWindowHint(GLFW_FSAA_SAMPLES, 2);
 	glfwOpenWindowHint(GLFW_OPENGL_VERSION_MAJOR, 3);
 	glfwOpenWindowHint(GLFW_OPENGL_VERSION_MINOR, 3);
 	glfwOpenWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
 	// Open a window and create its OpenGL context
-	if( !glfwOpenWindow( 1024, 768, 0,0,0,0, 32,0, GLFW_WINDOW ) )
+	if( !glfwOpenWindow( 1024, 768, 0,0,0,0, 32,0, GLFW_FULLSCREEN ) )
 	{
 		fprintf( stderr, "Failed to open GLFW window. If you have an Intel GPU, they are not 3.3 compatible. Try the 2.1 version of the tutorials.\n" );
 		glfwTerminate();
@@ -91,46 +87,114 @@ int main( void )
 	// Dark blue background
 	glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
 
-	// Enable depth test
-	//glEnable(GL_DEPTH_TEST);
-	// Accept fragment if it closer to the camera than the former one
-	//glDepthFunc(GL_LESS);
-	
-	GLuint VertexArrayID;
-	glGenVertexArrays(1, &VertexArrayID);
-	glBindVertexArray(VertexArrayID);
-
 	// Create and compile our GLSL program from the shaders
 	GLuint programID = LoadShaders( "Particle.vertexshader", "Particle.fragmentshader" );
 
 	// Get a handle for our "MVP" uniform
 	GLuint MatrixID = glGetUniformLocation(programID, "MVP");
 
-	static const GLfloat g_vertex_buffer_data[] = { 
-		-1.0f, -1.0f, 0.0f,
-		 1.0f, -1.0f, 0.0f,
-		 0.0f,  1.0f, 0.0f,
-	};
-	static const GLushort g_element_buffer_data[] = { 0, 1, 2 };
+	// Load the texture
+	// And Get a handle for our "myTextureSampler" uniform
+	//GLuint Texture = loadBMP_custom("particle.bmp");
+	//GLuint TextureID  = glGetUniformLocation(programID, "myTextureSampler");
 
-	vector<float> datav = pe.getPositions();
+	//vector<float> datav = pe.getPositions();
 	GLuint vertexbuffer;
 	glGenBuffers(1, &vertexbuffer);
 	glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
-	glBufferData(GL_ARRAY_BUFFER, 3*pe.getNumberOfParticles()*sizeof(float), &datav[0], GL_STREAM_DRAW);
+	//glBufferData(GL_ARRAY_BUFFER, 3*pe.getNumberOfParticles()*sizeof(float), &datav[0], GL_STREAM_DRAW);
 
 	GLuint colorBuffer;
 	glGenBuffers(1, &colorBuffer);
 	glBindBuffer(GL_ARRAY_BUFFER, colorBuffer);
 	
-	 double lastTime = glfwGetTime();
+	/*
+	GLuint radiusBuffer;
+	glGenBuffers(1, &radiusBuffer);
+	glBindBuffer(GL_ARRAY_BUFFER, radiusBuffer);
+	*/
+
+	// Enable depth test
+	//glEnable(GL_DEPTH_TEST);
+	// Accept fragment if it closer to the camera than the former one
+	//glDepthFunc(GL_LESS);
+
+	// enable blending
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+ 
+	// set for particles
+	//glEnable( GL_POINT_SPRITE );
+
+	// enable point smoothing
+	//glHint(GL_POINT_SMOOTH_HINT, GL_NICEST);
+	glHint(GL_POLYGON_SMOOTH_HINT, GL_NICEST);
+	//glEnable(GL_POINT_SMOOTH);
+
+	// enable setting vertex point size in shader
+	glEnable(GL_VERTEX_PROGRAM_POINT_SIZE);
 	
+	//enable multisampling
+	//glEnable( GL_MULTISAMPLE );
+
+	int renderStep = 0;
+	int colorOption = 0;
+	ColorPicker cp;
+	int numParticles;
+	double lastTime = glfwGetTime();
+	double currentTime;
+
+	//camera animation variables
+	glm::vec3 position = glm::vec3(0,0,9000); 
+	float horizontalAngle = 34.55f;
+	float verticalAngle = 0.0f;
+	float initialFoV = 45.0f;
+	float speed = 100.0f; 
+	float mouseSpeed = 0.005f;
+	float deltaTime;
+	// Get mouse position
+	int xpos = 512;
+	int ypos = 384;
+	//Projection/View Matrix variables
+	glm::mat4 ViewMatrix;
+	glm::mat4 ProjectionMatrix;
+
 	do{
-		double currentTime = glfwGetTime();
+		currentTime = glfwGetTime();
+
+		//Camera Movement for the movie
+		// Compute time difference between current and last frame
+		//float deltaTime = float(currentTime - lastTime);
+		// Compute new orientation
+		//horizontalAngle += mouseSpeed * float(1024/2 - xpos );
+		//verticalAngle   += mouseSpeed * float( 768/2 - ypos );
+		// Direction : Spherical coordinates to Cartesian coordinates conversion
+		//glm::vec3 direction(cos(verticalAngle)*sin(horizontalAngle), 
+		//		sin(verticalAngle),cos(verticalAngle)*cos(horizontalAngle));
+		// Right vector
+		//glm::vec3 right = glm::vec3(sin(horizontalAngle-3.14f/2.0f),0,cos(horizontalAngle - 3.14f/2.0f));
+		// Up vector
+		//glm::vec3 up = glm::cross( right, direction );
+
+		// Move forward
+		//position += direction * deltaTime * speed;
+		// Move backward
+		//position -= direction * deltaTime * speed;
+		// Strafe right
+		//position += right * deltaTime * speed;
+		// Strafe left
+		//position -= right * deltaTime * speed;
+		//float FoV = initialFoV - 100 * glfwGetMouseWheel();
+		// Projection matrix : 45° Field of View, 4:3 ratio, display range : 0.1 unit <-> 100 units
+		//ProjectionMatrix = glm::perspective(FoV, 4.0f / 3.0f, 0.1f, 100000.0f);
+		// Camera matrix
+		//ViewMatrix = glm::lookAt(position, position+direction, up);
+		//End of Camera Movement for Movie
+
 		pe.step((float)(currentTime-lastTime));
 		lastTime = currentTime;
 	
-		int numParticles = pe.getNumberOfParticles();
+		numParticles = pe.getNumberOfParticles();
 
 		vector<float> datav = pe.getPositions();
 		glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
@@ -182,8 +246,6 @@ int main( void )
 		}
 
 		vector<float> colorData(3*numParticles);
-
-		ColorPicker cp;
 		if(colorOption == 0){//No Coloring
 			for(int i=0; i<numParticles; i++){
 				vector<float> newColor = cp.getColor(0,0,1);
@@ -252,7 +314,6 @@ int main( void )
 		}
 
 		else if(colorOption == 3){//Color Mass
-
 			float maxMass = 0.0f;
 			for(int i=0;i<numParticles;i++)
 			{
@@ -279,6 +340,19 @@ int main( void )
 		glBindBuffer(GL_ARRAY_BUFFER, colorBuffer);
 		glBufferData(GL_ARRAY_BUFFER, 3*numParticles*sizeof(float), &colorData[0], GL_STREAM_DRAW);
 
+		
+		/*std::vector<float> radiusData; 
+		for(int i=0; i<numParticles; i++){
+			float rData = pe.getParticleSize(i);
+			radiusData.push_back(rData);
+			cout << rData;
+			cout << "\n";
+		}
+		/*
+		glBindBuffer(GL_ARRAY_BUFFER, radiusBuffer);
+		glBufferData(GL_ARRAY_BUFFER, numParticles*sizeof(float), &radiusData[0], GL_STREAM_DRAW);
+		*/
+
 		// Clear the screen
 		glClear( GL_COLOR_BUFFER_BIT );
 
@@ -289,6 +363,8 @@ int main( void )
 		computeMatricesFromInputs();
 		glm::mat4 ProjectionMatrix = getProjectionMatrix();
 		glm::mat4 ViewMatrix = getViewMatrix();
+		//glm::mat4 ProjectionMatrix = ProjectionMatrix;
+		//glm::mat4 ViewMatrix = ViewMatrix;
 		// Model matrix : an identity matrix (model will be at the origin)
 		glm::mat4 ModelMatrix = glm::mat4(1.0f);
 		// Our ModelViewProjection : multiplication of our 3 matrices
@@ -323,13 +399,36 @@ int main( void )
 			0,                  // stride
 			(void*)0            // array buffer offset
 		);
-		
+
+		// 2nd attribute buffer : radi
+		/*glEnableVertexAttribArray(2);
+		glBindBuffer(GL_ARRAY_BUFFER, radiusBuffer);
+		glVertexAttribPointer(
+			2,                  
+			1,                  
+			GL_FLOAT,           
+			GL_FALSE,           // normalized?
+			0,                  // stride
+			(void*)0            // array buffer offset
+		);*/
 
 		// Draw the Particles !
-		glDrawArrays(GL_POINTS, 0, numParticles);
+		glDrawArrays(GL_POINTS, 0, numParticles*3);
+
+		string fileString;
+		fileString.append("images/");
+		char str[15];
+		sprintf(str, "%d", renderStep);
+		fileString.append(str);
+		fileString.append(".tga");
+		char *fileName = (char*)fileString.c_str();
+
+		TakeScreenshot(fileName);
+		renderStep++;
 
 		glDisableVertexAttribArray(0);
 		glDisableVertexAttribArray(1);
+		//glDisableVertexAttribArray(2);
 
 		// Swap buffers
 		glfwSwapBuffers();
@@ -341,8 +440,9 @@ int main( void )
 	// Cleanup VBO and shader
 	glDeleteBuffers(1, &vertexbuffer);
 	glDeleteBuffers(1, &colorBuffer);
+	//glDeleteBuffers(1, &radiusBuffer);
 	glDeleteProgram(programID);
-	glDeleteVertexArrays(1, &VertexArrayID);
+	//glDeleteVertexArrays(1, &VertexArrayID);
 
 	// Close OpenGL window and terminate GLFW
 	glfwTerminate();

@@ -1,14 +1,13 @@
 #version 330 core
 
-in vec3 fragmentColor;
+smooth in vec3 fragmentColor;
 
 // Ouput data
-out vec3 color;
+smooth out vec4 color;
 
 void main()
 {
 	// Output color = red 
-	color = fragmentColor;
-	//color = vec3(1,1,1);
-
+	color = vec4(fragmentColor,1);
+	
 }
