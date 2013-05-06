@@ -9,8 +9,8 @@
 
 // Include GLFW
 #include <GL/glfw.h>
-#include <GL/glext.h>
-#include <gl/glut.h>
+//#include <GL/glext.h>
+//#include <gl/glut.h>
 
 // Include GLM
 #include <glm/glm.hpp>
@@ -26,7 +26,7 @@ using namespace glm;
 #include "TGAWriter.h"
 
 #include <vector>
-#include <iostream>
+//#include <iostream>
 
 int main( void )
 {
@@ -37,17 +37,17 @@ int main( void )
 	int threads = numCPU;
 	int particles = 1000;
 	ParticleEngine pe = (new ParticleEngineBuilder())->
-						setGravitationalConstant(30.0f)->
+						setGravitationalConstant(01.67221937f)->
 						setMinimumRadius(5.0f)->
-						setBlackHoleMass(0.0f)->
-						setBlackHoleRadius(5.0f)->
-						setDisappearingRadius(10000.0f)->
+						setBlackHoleMass(10000.0f)->
+						setBlackHoleRadius(0.000000001f)->
+						setDisappearingRadius(2500.0f)->
 						setCollisions(true)->
 						setNumberOfThreads(threads)->
-						setMinSpawnRadius(70)->
-						setmaxSpawnRadius(270)->
-						setspawnVelocity(12.0f)->
-						setmaxZSpawnDistance(10)->
+						setMinSpawnRadius(0)->
+						setmaxSpawnRadius(100)->
+						setspawnVelocity(10.0f)->
+						setmaxZSpawnDistance(300)->
 						setnumberOfParticles(particles)->
 						setIntegrator(4)->
 						Build();
@@ -124,12 +124,12 @@ int main( void )
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
  
 	// set for particles
-	//glEnable( GL_POINT_SPRITE );
+	glEnable( GL_POINT_SPRITE );
 
 	// enable point smoothing
-	//glHint(GL_POINT_SMOOTH_HINT, GL_NICEST);
+	glHint(GL_POINT_SMOOTH_HINT, GL_NICEST);
 	glHint(GL_POLYGON_SMOOTH_HINT, GL_NICEST);
-	//glEnable(GL_POINT_SMOOTH);
+	glEnable(GL_POINT_SMOOTH);
 
 	// enable setting vertex point size in shader
 	glEnable(GL_VERTEX_PROGRAM_POINT_SIZE);
