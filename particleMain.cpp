@@ -4,13 +4,8 @@
 #include <stdlib.h>
 #include <windows.h>
 
-// Include GLEW
 #include <GL/glew.h>
-
-// Include GLFW
 #include <GL/glfw.h>
-//#include <GL/glext.h>
-//#include <gl/glut.h>
 
 // Include GLM
 #include <glm/glm.hpp>
@@ -27,7 +22,7 @@ using namespace glm;
 #include "TGAWriter.h"
 
 #include <vector>
-//#include <iostream>
+#include <iostream>
 
 int main( void )
 {
@@ -104,35 +99,17 @@ int main( void )
 	glGenBuffers(1, &colorBuffer);
 	glBindBuffer(GL_ARRAY_BUFFER, colorBuffer);
 	
-	/*
 	GLuint radiusBuffer;
 	glGenBuffers(1, &radiusBuffer);
 	glBindBuffer(GL_ARRAY_BUFFER, radiusBuffer);
-	*/
 
 	// Enable depth test
 	//glEnable(GL_DEPTH_TEST);
 	// Accept fragment if it closer to the camera than the former one
 	//glDepthFunc(GL_LESS);
-	/*
-	// enable blending
-	glEnable(GL_BLEND);
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
- 
-	// set for particles
-	glEnable( GL_POINT_SPRITE );
 
-	// enable point smoothing
-	glHint(GL_POINT_SMOOTH_HINT, GL_NICEST);
-	glHint(GL_POLYGON_SMOOTH_HINT, GL_NICEST);
-	glEnable(GL_POINT_SMOOTH);
-
-	// enable setting vertex point size in shader
-	glEnable(GL_VERTEX_PROGRAM_POINT_SIZE);
-	*/
 	//enable multisampling
 	//glEnable( GL_MULTISAMPLE );
-
 
 	// Load the texture
 	// And Get a handle for our "myTextureSampler" uniform
@@ -338,17 +315,16 @@ int main( void )
 		glBufferData(GL_ARRAY_BUFFER, 3*numParticles*sizeof(float), &colorData[0], GL_STREAM_DRAW);
 
 		
-		/*std::vector<float> radiusData; 
+		std::vector<float> radiusData; 
 		for(int i=0; i<numParticles; i++){
 			float rData = pe.getParticleSize(i);
 			radiusData.push_back(rData);
-			cout << rData;
-			cout << "\n";
+			//cout << rData;
+			//cout << "\n";
 		}
-		/*
 		glBindBuffer(GL_ARRAY_BUFFER, radiusBuffer);
 		glBufferData(GL_ARRAY_BUFFER, numParticles*sizeof(float), &radiusData[0], GL_STREAM_DRAW);
-		*/
+		
 
 		// Clear the screen
 		glClear( GL_COLOR_BUFFER_BIT );
@@ -398,7 +374,7 @@ int main( void )
 		);
 
 		// 2nd attribute buffer : radi
-		/*glEnableVertexAttribArray(2);
+		glEnableVertexAttribArray(2);
 		glBindBuffer(GL_ARRAY_BUFFER, radiusBuffer);
 		glVertexAttribPointer(
 			2,                  
@@ -407,10 +383,9 @@ int main( void )
 			GL_FALSE,           // normalized?
 			0,                  // stride
 			(void*)0            // array buffer offset
-		);*/
+		);
 
 		// Draw the Particles !
-		//glUniform1f(uniform_point_size, res_texture.width);
 		glDrawArrays(GL_POINTS, 0, numParticles*3);
 
 		string fileString;
@@ -426,7 +401,7 @@ int main( void )
 
 		glDisableVertexAttribArray(0);
 		glDisableVertexAttribArray(1);
-		//glDisableVertexAttribArray(2);
+		glDisableVertexAttribArray(2);
 
 		// Swap buffers
 		glfwSwapBuffers();
@@ -438,7 +413,7 @@ int main( void )
 	// Cleanup VBO and shader
 	glDeleteBuffers(1, &vertexbuffer);
 	glDeleteBuffers(1, &colorBuffer);
-	//glDeleteBuffers(1, &radiusBuffer);
+	glDeleteBuffers(1, &radiusBuffer);
 	glDeleteProgram(programID);
 	//glDeleteVertexArrays(1, &VertexArrayID);
 
