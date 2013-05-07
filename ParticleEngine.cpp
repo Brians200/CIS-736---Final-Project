@@ -550,4 +550,6 @@ vector<float> ParticleEngine::getParticleEngineCenter()
 	retern.push_back(y);
 	retern.push_back(z);
 
+	return retern;
+
 }
