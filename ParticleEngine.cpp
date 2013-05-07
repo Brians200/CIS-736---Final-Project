@@ -524,3 +524,30 @@ void ParticleEngine::step(float time)
 		}
 	}
 }
+
+vector<float> ParticleEngine::getParticleEngineCenter()
+{
+	float x,y,z;
+	x=y=z=0.0f;
+
+	for(int i=0;i<numberOfParticles;i++)
+	{
+		Vector3 pos = particleArray[i].position;
+		x+=pos.x;
+		y+=pos.y;
+		z+=pos.z;
+	}
+
+	if(numberOfParticles!=0)
+	{
+		x/=numberOfParticles;
+		y/=numberOfParticles;
+		z/=numberOfParticles;
+	}
+
+	vector<float> retern;
+	retern.push_back(x);
+	retern.push_back(y);
+	retern.push_back(z);
+
+}

@@ -30,6 +30,7 @@ public:
 	float getMass(int particleNumber);
 	float getAcceleration(int particleNumber);
 	float getVelocity(int particleNumber);
+	vector<float> getParticleEngineCenter();
 
 	void setIntegrator(int integratorNumber);
 
