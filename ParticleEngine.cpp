@@ -1,7 +1,5 @@
 #include "ParticleEngine.h"
 
-
-
 const float PI = std::atanf(1.0f)*4.0f;
 int numberOfParticles;
 vector<Particle> particleArray;
