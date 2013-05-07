@@ -1,9 +1,9 @@
 #version 330 core
 
-smooth in vec3 fragmentColor;
+in vec3 fragmentColor;
 
 // Ouput data
-smooth out vec4 color;
+out vec4 color;
 
 void main()
 {

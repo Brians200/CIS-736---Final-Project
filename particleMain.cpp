@@ -118,7 +118,7 @@ int main( void )
 	//glEnable(GL_DEPTH_TEST);
 	// Accept fragment if it closer to the camera than the former one
 	//glDepthFunc(GL_LESS);
-
+	/*
 	// enable blending
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -133,7 +133,7 @@ int main( void )
 
 	// enable setting vertex point size in shader
 	glEnable(GL_VERTEX_PROGRAM_POINT_SIZE);
-	
+	*/
 	//enable multisampling
 	//glEnable( GL_MULTISAMPLE );
 
