@@ -19,6 +19,7 @@ using namespace glm;
 
 #include "shader.hpp"
 #include "controls.hpp"
+#include "texture.hpp"
 
 #include "ParticleEngine.h"
 #include "ParticleEngineBuilder.h"
@@ -93,11 +94,6 @@ int main( void )
 	// Get a handle for our "MVP" uniform
 	GLuint MatrixID = glGetUniformLocation(programID, "MVP");
 
-	// Load the texture
-	// And Get a handle for our "myTextureSampler" uniform
-	//GLuint Texture = loadBMP_custom("particle.bmp");
-	//GLuint TextureID  = glGetUniformLocation(programID, "myTextureSampler");
-
 	//vector<float> datav = pe.getPositions();
 	GLuint vertexbuffer;
 	glGenBuffers(1, &vertexbuffer);
@@ -137,6 +133,22 @@ int main( void )
 	//enable multisampling
 	//glEnable( GL_MULTISAMPLE );
 
+
+	// Load the texture
+	// And Get a handle for our "myTextureSampler" uniform
+	GLuint Texture = loadBMP_custom("particle.bmp");
+	GLuint TextureID  = glGetUniformLocation(programID, "myTextureSampler");
+
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	glEnable(GL_POINT_SPRITE);
+	glEnable(GL_VERTEX_PROGRAM_POINT_SIZE);
+
+	glBindTexture(GL_TEXTURE_2D, TextureID);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+
+
 	int renderStep = 0;
 	int colorOption = 0;
 	ColorPicker cp;
@@ -144,6 +156,7 @@ int main( void )
 	double lastTime = glfwGetTime();
 	double currentTime;
 
+	/*
 	//camera animation variables
 	glm::vec3 position = glm::vec3(0,0,9000); 
 	float horizontalAngle = 34.55f;
@@ -158,6 +171,7 @@ int main( void )
 	//Projection/View Matrix variables
 	glm::mat4 ViewMatrix;
 	glm::mat4 ProjectionMatrix;
+	*/
 
 	do{
 		currentTime = glfwGetTime();
@@ -212,38 +226,21 @@ int main( void )
 		}
 
 		// Set Integrator Euler
-		if (glfwGetKey( '1' ) == GLFW_PRESS){
-			pe.setIntegrator(1);
-		}
+		if (glfwGetKey( '1' ) == GLFW_PRESS){pe.setIntegrator(1);}
 		// Set Integrator Euler
-		if (glfwGetKey( '2' ) == GLFW_PRESS){
-			pe.setIntegrator(2);
-		}
+		if (glfwGetKey( '2' ) == GLFW_PRESS){pe.setIntegrator(2);}
 		// Set Integrator Euler
-		if (glfwGetKey( '3' ) == GLFW_PRESS){
-			pe.setIntegrator(3);
-		}
+		if (glfwGetKey( '3' ) == GLFW_PRESS){pe.setIntegrator(3);}	
 		// Set Integrator Euler
-		if (glfwGetKey( '4' ) == GLFW_PRESS){
-			pe.setIntegrator(4);
-		}
-
+		if (glfwGetKey( '4' ) == GLFW_PRESS){pe.setIntegrator(4);}
 		// Set Color Acceleration
-		if (glfwGetKey( 'A' ) == GLFW_PRESS){
-			colorOption = 1;
-		}
+		if (glfwGetKey( 'A' ) == GLFW_PRESS){colorOption = 1;}
 		// Set Color Velocity
-		if (glfwGetKey( 'V' ) == GLFW_PRESS){
-			colorOption = 2;
-		}
+		if (glfwGetKey( 'V' ) == GLFW_PRESS){colorOption = 2;}
 		// Set Color Mass
-		if (glfwGetKey( 'M' ) == GLFW_PRESS){
-			colorOption = 3;
-		}
+		if (glfwGetKey( 'M' ) == GLFW_PRESS){colorOption = 3;}
 		// Set Color None All particles White
-		if (glfwGetKey( 'N' ) == GLFW_PRESS){
-			colorOption = 0;
-		}
+		if (glfwGetKey( 'N' ) == GLFW_PRESS){colorOption = 0;}
 
 		vector<float> colorData(3*numParticles);
 		if(colorOption == 0){//No Coloring
@@ -413,6 +410,7 @@ int main( void )
 		);*/
 
 		// Draw the Particles !
+		//glUniform1f(uniform_point_size, res_texture.width);
 		glDrawArrays(GL_POINTS, 0, numParticles*3);
 
 		string fileString;
