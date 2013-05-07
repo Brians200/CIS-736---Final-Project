@@ -83,6 +83,10 @@ int main( void )
 	// Dark blue background
 	glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
 
+	GLuint VertexArrayID;
+	glGenVertexArrays(1, &VertexArrayID);
+	glBindVertexArray(VertexArrayID);
+
 	// Create and compile our GLSL program from the shaders
 	GLuint programID = LoadShaders( "Particle.vertexshader", "Particle.fragmentshader" );
 
@@ -244,9 +248,6 @@ int main( void )
 					maxAcceleration = pe.getAcceleration(i);
 				}
 			}
-
-		
-
 			for(int i=0; i<numParticles; i++){
 				float acceleration = pe.getAcceleration(i);
 				vector<float> newColor = cp.getColor(120.0f*acceleration/maxAcceleration+240.0f,1,1);
@@ -271,7 +272,6 @@ int main( void )
 					maxVelocity = pe.getVelocity(i);
 				}
 			}
-
 			for(int i=0; i<numParticles; i++){
 				float velocity = pe.getVelocity(i);
 				vector<float> newColor = cp.getColor(120.0f-120.0f * velocity/maxVelocity,1,1);
@@ -296,7 +296,6 @@ int main( void )
 					maxMass = pe.getMass(i);
 				}
 			}
-
 			for(int i=0; i<numParticles; i++){
 				float mass = pe.getMass(i);
 				vector<float> newColor = cp.getColor(120,mass/maxMass,1);
@@ -347,12 +346,11 @@ int main( void )
 		// in the "MVP" uniform
 		glUniformMatrix4fv(MatrixID, 1, GL_FALSE, &MVP[0][0]);
 
-
 		// 1rst attribute buffer : vertices
 		glEnableVertexAttribArray(0);
 		glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
 		glVertexAttribPointer(
-			0,                  // attribute. No particular reason for 0, but must match the layout in the shader.
+			0,                  // attribute. 
 			3,                  // size
 			GL_FLOAT,           // type
 			GL_FALSE,           // normalized?
@@ -360,33 +358,32 @@ int main( void )
 			(void*)0            // array buffer offset
 		);
 
-
 		// 2nd attribute buffer : colors
 		glEnableVertexAttribArray(1);
 		glBindBuffer(GL_ARRAY_BUFFER, colorBuffer);
 		glVertexAttribPointer(
-			1,                  
-			3,                  
-			GL_FLOAT,           
-			GL_FALSE,           // normalized?
-			0,                  // stride
-			(void*)0            // array buffer offset
+			1,
+			3,
+			GL_FLOAT,
+			GL_FALSE,
+			0,
+			(void*)0
 		);
 
 		// 2nd attribute buffer : radi
 		glEnableVertexAttribArray(2);
 		glBindBuffer(GL_ARRAY_BUFFER, radiusBuffer);
 		glVertexAttribPointer(
-			2,                  
-			1,                  
-			GL_FLOAT,           
-			GL_FALSE,           // normalized?
-			0,                  // stride
-			(void*)0            // array buffer offset
+			2,
+			1,
+			GL_FLOAT,
+			GL_FALSE,
+			0,
+			(void*)0
 		);
 
 		// Draw the Particles !
-		glDrawArrays(GL_POINTS, 0, numParticles*3);
+		glDrawArrays(GL_POINTS, 0, numParticles * 3);
 
 		string fileString;
 		fileString.append("images/");
@@ -399,6 +396,9 @@ int main( void )
 		TakeScreenshot(fileName);
 		renderStep++;
 
+		int error = glGetError();
+		cout << error;
+
 		glDisableVertexAttribArray(0);
 		glDisableVertexAttribArray(1);
 		glDisableVertexAttribArray(2);
@@ -407,15 +407,14 @@ int main( void )
 		glfwSwapBuffers();
 		
 	} // Check if the ESC key was pressed or the window was closed
-	while( glfwGetKey( GLFW_KEY_ESC ) != GLFW_PRESS &&
-		   glfwGetWindowParam( GLFW_OPENED ) );
+	while( glfwGetKey( GLFW_KEY_ESC ) != GLFW_PRESS && glfwGetWindowParam( GLFW_OPENED ) );
 
 	// Cleanup VBO and shader
 	glDeleteBuffers(1, &vertexbuffer);
 	glDeleteBuffers(1, &colorBuffer);
 	glDeleteBuffers(1, &radiusBuffer);
 	glDeleteProgram(programID);
-	//glDeleteVertexArrays(1, &VertexArrayID);
+	glDeleteVertexArrays(1, &VertexArrayID);
 
 	// Close OpenGL window and terminate GLFW
 	glfwTerminate();
