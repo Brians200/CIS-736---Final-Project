@@ -400,7 +400,8 @@ int main( void )
 		if (glfwGetKey( 'N' ) == GLFW_PRESS){colorOption = 0;}
 		*/
 
-		if( (renderStep % 30) == 0 )
+		//if( (renderStep % 30) == 0 )
+		if( true )
 		{
 		vector<float> colorData(3*numParticles);
 		if(colorOption == 0){//No Coloring
