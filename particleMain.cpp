@@ -6,6 +6,7 @@
 
 #include <GL/glew.h>
 #include <GL/glfw.h>
+#include <GL/glut.h>
 
 // Include GLM
 #include <glm/glm.hpp>
@@ -22,7 +23,8 @@ using namespace glm;
 #include "TGAWriter.h"
 
 #include <vector>
-#include <iostream>
+#include <sstream>
+//#include <iostream>
 
 int main( void )
 {
@@ -31,19 +33,19 @@ int main( void )
 	int numCPU = sysinfo.dwNumberOfProcessors;
 
 	int threads = numCPU;
-	int particles = 1000;
+	int particles = 500;
 	ParticleEngine pe = (new ParticleEngineBuilder())->
-						setGravitationalConstant(01.67221937f)->
-						setMinimumRadius(5.0f)->
-						setBlackHoleMass(10000.0f)->
-						setBlackHoleRadius(0.000000001f)->
-						setDisappearingRadius(2500.0f)->
+						setGravitationalConstant(7.0f)->
+						setMinimumRadius(30.0f)->
+						setBlackHoleMass(1000.0f)->
+						setBlackHoleRadius(5.0f)->
+						setDisappearingRadius(10000.0f)->
 						setCollisions(true)->
 						setNumberOfThreads(threads)->
-						setMinSpawnRadius(0)->
-						setmaxSpawnRadius(100)->
-						setspawnVelocity(10.0f)->
-						setmaxZSpawnDistance(300)->
+						setMinSpawnRadius(70)->
+						setmaxSpawnRadius(270)->
+						setspawnVelocity(9.0f)->
+						setmaxZSpawnDistance(20)->
 						setnumberOfParticles(particles)->
 						setIntegrator(4)->
 						Build();
@@ -60,7 +62,7 @@ int main( void )
 	glfwOpenWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
 	// Open a window and create its OpenGL context
-	if( !glfwOpenWindow( 1024, 768, 0,0,0,0, 32,0, GLFW_WINDOW ) )
+	if( !glfwOpenWindow( 1920, 1080, 0,0,0,0, 32,0, GLFW_FULLSCREEN ) )
 	{
 		fprintf( stderr, "Failed to open GLFW window. If you have an Intel GPU, they are not 3.3 compatible. Try the 2.1 version of the tutorials.\n" );
 		glfwTerminate();
@@ -107,13 +109,8 @@ int main( void )
 	glGenBuffers(1, &radiusBuffer);
 	glBindBuffer(GL_ARRAY_BUFFER, radiusBuffer);
 
-	// Enable depth test
-	//glEnable(GL_DEPTH_TEST);
-	// Accept fragment if it closer to the camera than the former one
-	//glDepthFunc(GL_LESS);
-
 	//enable multisampling
-	//glEnable( GL_MULTISAMPLE );
+	glEnable( GL_MULTISAMPLE );
 
 	// Load the texture
 	// And Get a handle for our "myTextureSampler" uniform
@@ -121,73 +118,257 @@ int main( void )
 	GLuint TextureID  = glGetUniformLocation(programID, "myTextureSampler");
 
 	glEnable(GL_BLEND);
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	//glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE);
 	glEnable(GL_POINT_SPRITE);
 	glEnable(GL_VERTEX_PROGRAM_POINT_SIZE);
+	glAlphaFunc(GL_GREATER,0.1f);
+	glEnable(GL_ALPHA_TEST);
 
 	glBindTexture(GL_TEXTURE_2D, TextureID);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 
-
 	int renderStep = 0;
-	int colorOption = 0;
+	int colorOption = 3;
 	ColorPicker cp;
 	int numParticles;
-	double lastTime = glfwGetTime();
-	double currentTime;
-
-	/*
+	//double lastTime = glfwGetTime();
+	//double currentTime;
+	
 	//camera animation variables
-	glm::vec3 position = glm::vec3(0,0,9000); 
+	glm::vec3 position = glm::vec3(0,0,0); 
 	float horizontalAngle = 34.55f;
 	float verticalAngle = 0.0f;
 	float initialFoV = 45.0f;
-	float speed = 100.0f; 
-	float mouseSpeed = 0.005f;
-	float deltaTime;
+	//float speed = 100.0f; 
+	//float mouseSpeed = 0.005f;
+	//float deltaTime;
+	int quadrantXZ = 4;
+	int quadrantYZ = 4;
+	int quadrantXYZ = 4;
 	// Get mouse position
-	int xpos = 512;
-	int ypos = 384;
+	//int xpos = 512;
+	//int ypos = 384;
 	//Projection/View Matrix variables
 	glm::mat4 ViewMatrix;
 	glm::mat4 ProjectionMatrix;
-	*/
+	vector<float> centerVector;
+	float timeStep = 1/3;
 
+   void* bitmap_fonts[7] = {
+      GLUT_BITMAP_9_BY_15,
+      GLUT_BITMAP_8_BY_13,
+      GLUT_BITMAP_TIMES_ROMAN_10,
+      GLUT_BITMAP_TIMES_ROMAN_24,
+      GLUT_BITMAP_HELVETICA_10,
+      GLUT_BITMAP_HELVETICA_12,
+      GLUT_BITMAP_HELVETICA_18     
+   };
+   
 	do{
-		currentTime = glfwGetTime();
 
-		//Camera Movement for the movie
-		// Compute time difference between current and last frame
-		//float deltaTime = float(currentTime - lastTime);
-		// Compute new orientation
-		//horizontalAngle += mouseSpeed * float(1024/2 - xpos );
-		//verticalAngle   += mouseSpeed * float( 768/2 - ypos );
-		// Direction : Spherical coordinates to Cartesian coordinates conversion
-		//glm::vec3 direction(cos(verticalAngle)*sin(horizontalAngle), 
-		//		sin(verticalAngle),cos(verticalAngle)*cos(horizontalAngle));
-		// Right vector
-		//glm::vec3 right = glm::vec3(sin(horizontalAngle-3.14f/2.0f),0,cos(horizontalAngle - 3.14f/2.0f));
-		// Up vector
-		//glm::vec3 up = glm::cross( right, direction );
-
-		// Move forward
-		//position += direction * deltaTime * speed;
-		// Move backward
-		//position -= direction * deltaTime * speed;
-		// Strafe right
-		//position += right * deltaTime * speed;
-		// Strafe left
-		//position -= right * deltaTime * speed;
-		//float FoV = initialFoV - 100 * glfwGetMouseWheel();
-		// Projection matrix : 45° Field of View, 4:3 ratio, display range : 0.1 unit <-> 100 units
-		//ProjectionMatrix = glm::perspective(FoV, 4.0f / 3.0f, 0.1f, 100000.0f);
-		// Camera matrix
-		//ViewMatrix = glm::lookAt(position, position+direction, up);
+		//currentTime = glfwGetTime();
+		if(renderStep % 900 == 0){
+			if((renderStep/900) % 4 == 0){
+				//No Variable Color
+				colorOption = 0;
+			}
+			else if((renderStep/900) % 2 == 0){
+				//Velocity Variable Color
+				//colorOption = 2;
+				colorOption = 0;
+			}
+			else if((renderStep/900) % 3 == 0){
+				//Mass Variable Color
+				colorOption = 3;
+			}
+			else{
+				colorOption = 1;
+			}
+		}
+		
+		if(renderStep <= 100){
+			position[2]+=20;
+		}
+		
+		if(renderStep == 500){
+			position[2] = 2000;
+		}
+		if(renderStep > 900 && renderStep <= 1800)
+		{
+			if(quadrantXZ == 1){
+				if(position[0] == 0){
+					quadrantXZ=2;
+				}else
+				{
+					position[0]-=10;
+					position[2]-=10;
+				}
+			}
+			if(quadrantXZ == 2){
+				if(position[0] == -2000){
+					quadrantXZ=3;
+				}else
+				{
+					position[0]-=10;
+					position[2]+=10;
+				}
+			}
+			if(quadrantXZ == 3){
+				if(position[2] == 2000){
+					quadrantXZ=4;
+				}else
+				{
+					position[0]+=10;
+					position[2]+=10;
+				}
+			}
+			if(quadrantXZ == 4){
+				if(position[2] == 0){
+					quadrantXZ=1;
+				}else
+				{
+					position[0]+=10;
+					position[2]-=10;
+				}
+			}
+		}
+		if(renderStep == 1801){	
+			position[0] = 0;
+			position[1] = 0;
+			position[2] = 2000;
+		}
+		if(renderStep > 2700 && renderStep <= 3600)
+		{
+			if(quadrantYZ == 1){
+				if(position[1] == 0){
+					quadrantYZ=2;
+				}else
+				{
+					position[1]-=10;
+					position[2]-=10;
+				}
+			}
+			if(quadrantYZ == 2){
+				if(position[1] == -2000){
+					quadrantYZ=3;
+				}else
+				{
+					position[1]-=10;
+					position[2]+=10;
+				}
+			}
+			if(quadrantYZ == 3){
+				if(position[2] == 2000){
+					quadrantYZ=4;
+				}else
+				{
+					position[1]+=10;
+					position[2]+=10;
+				}
+			}
+			if(quadrantYZ == 4){
+				if(position[2] == 0){
+					quadrantYZ=1;
+				}else
+				{
+					position[1]+=10;
+					position[2]-=10;
+				}
+			}
+		}
+		if(renderStep == 3601){	
+			position[0] = 0;
+			position[1] = 0;
+			position[2] = 1700;
+		}
+		if(renderStep > 4500 && renderStep <= 7000)
+		{
+			if(quadrantXYZ == 1){
+				if(position[1] == 0){
+					quadrantXYZ=2;
+				}else
+				{
+					position[0]-=10;
+					position[1]-=10;
+					position[2]-=10;
+				}
+			}
+			if(quadrantXYZ == 2){
+				if(position[1] == -1700){
+					quadrantXYZ=3;
+				}else
+				{
+					position[0]-=10;
+					position[1]-=10;
+					position[2]+=10;
+				}
+			}
+			if(quadrantXYZ == 3){
+				if(position[2] == 1700){
+					quadrantXYZ=4;
+				}else
+				{
+					position[0]+=10;
+					position[1]+=10;
+					position[2]+=10;
+				}
+			}
+			if(quadrantXYZ == 4){
+				if(position[2] == 0){
+					quadrantXYZ=1;
+				}else
+				{
+					position[0]+=10;
+					position[1]+=10;
+					position[2]-=10;
+				}
+			}
+		}
+		if(renderStep == 7001){	
+			position[0] = 0;
+			position[1] = 0;
+			position[2] = 1200;
+		}
+		centerVector = pe.getParticleEngineCenter();
+		glm::vec3 center = glm::vec3(centerVector[0],centerVector[1],centerVector[2]);
+		glm::vec3 direction = glm::normalize(glm::vec3(center-position));
+		glm::mat3 yRotate(
+			0, 0.0, -1,
+			0.0, 1.0, 0.0f,
+			1, 0.0, 0.0f);
+		glm::vec3 right = glm::vec3(yRotate[0][0]*direction[0] + yRotate[1][0]*direction[1] + yRotate[2][0]*direction[2],
+			yRotate[0][1]*direction[0] + yRotate[1][1]*direction[1] + yRotate[2][1]*direction[2],
+			yRotate[0][2]*direction[0] + yRotate[1][2]*direction[1] + yRotate[2][2]*direction[2]);
+		glm::vec3 up = glm::cross( right, direction );
+		float FoV = initialFoV;
+		ProjectionMatrix = glm::perspective(FoV, 4.0f / 3.0f, 0.1f, 100000.0f);
+		ViewMatrix = glm::lookAt(position, center, up);
 		//End of Camera Movement for Movie
 
-		pe.step((float)(currentTime-lastTime));
-		lastTime = currentTime;
+		// Clear the screen
+		glClear( GL_COLOR_BUFFER_BIT );
+
+		// Use our shader
+		glUseProgram(programID);
+
+		// Compute the MVP matrix from keyboard and mouse input
+		//computeMatricesFromInputs();
+		//glm::mat4 ProjectionMatrix = getProjectionMatrix();
+		//glm::mat4 ViewMatrix = getViewMatrix();
+		// Model matrix : an identity matrix (model will be at the origin)
+		glm::mat4 ModelMatrix = glm::mat4(1.0f);
+		// Our ModelViewProjection : multiplication of our 3 matrices
+		glm::mat4 MVP = ProjectionMatrix * ViewMatrix * ModelMatrix;
+
+		// Send our transformation to the currently bound shader, 
+		// in the "MVP" uniform
+		glUniformMatrix4fv(MatrixID, 1, GL_FALSE, &MVP[0][0]);
+
+		pe.step((float)(0.33333333333));	
+		//pe.step((float)(currentTime-lastTime));
+		//lastTime = currentTime;
 	
 		numParticles = pe.getNumberOfParticles();
 
@@ -195,6 +376,7 @@ int main( void )
 		glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
 		glBufferData(GL_ARRAY_BUFFER, 3*numParticles*sizeof(float), &datav[0], GL_STREAM_DRAW);
 
+		/*
 		// Decrease Number of Particles
 		if (glfwGetKey( GLFW_KEY_KP_SUBTRACT ) == GLFW_PRESS){
 			pe.decreaseNumberOfParticles(50);
@@ -222,11 +404,49 @@ int main( void )
 		if (glfwGetKey( 'M' ) == GLFW_PRESS){colorOption = 3;}
 		// Set Color None All particles White
 		if (glfwGetKey( 'N' ) == GLFW_PRESS){colorOption = 0;}
+		*/
 
+		if( (renderStep % 30) == 0 )
+		{
 		vector<float> colorData(3*numParticles);
 		if(colorOption == 0){//No Coloring
 			for(int i=0; i<numParticles; i++){
-				vector<float> newColor = cp.getColor(0,0,1);
+				int size = pe.getParticleSize(i)*100;
+				float hue = 0.0f;
+				float saturation = 0.0f;
+				float value = 0.0f;
+				if(size>9){
+					hue = 1;
+					saturation = 1;
+					value = 1;
+				}
+				else if(size>8){
+					hue = 30;
+					saturation = 1;
+					value = 1;
+				}
+				else if(size>7){
+					hue = 60;
+					saturation = 1;
+					value = 1;
+				}
+				else if(size>6){
+					hue = 240;
+					saturation = 0.5;
+					value = 0.5;
+				}
+				else if(size>5){
+					hue = 180;
+					saturation = 0.5;
+					value = 0.5;
+				}
+				else{
+					hue = 0;
+					saturation = 0;
+					value = 1;
+
+				}
+				vector<float> newColor = cp.getColor(hue,saturation,value);
 				float blue = newColor.back();
 				newColor.pop_back();
 				float green = newColor.back();
@@ -289,16 +509,24 @@ int main( void )
 
 		else if(colorOption == 3){//Color Mass
 			float maxMass = 0.0f;
+			float minMass = 0.0f;
 			for(int i=0;i<numParticles;i++)
 			{
-				if(pe.getMass(i) > maxMass)
+				float massTester = pe.getMass(i);
+				if(massTester > maxMass)
 				{
-					maxMass = pe.getMass(i);
+					maxMass = massTester;
+				}
+				if(massTester < minMass)
+				{
+					minMass = massTester;
 				}
 			}
 			for(int i=0; i<numParticles; i++){
+				float massRange = maxMass - minMass;
 				float mass = pe.getMass(i);
-				vector<float> newColor = cp.getColor(120,mass/maxMass,1);
+				float value = (((massRange - mass) / massRange) - 1) * -1;
+				vector<float> newColor = cp.getColor(180,mass/maxMass,value);
 				float blue = newColor.back();
 				newColor.pop_back();
 				float green = newColor.back();
@@ -313,38 +541,15 @@ int main( void )
 		glBindBuffer(GL_ARRAY_BUFFER, colorBuffer);
 		glBufferData(GL_ARRAY_BUFFER, 3*numParticles*sizeof(float), &colorData[0], GL_STREAM_DRAW);
 
-		
 		std::vector<float> radiusData; 
 		for(int i=0; i<numParticles; i++){
 			float rData = pe.getParticleSize(i);
 			radiusData.push_back(rData);
-			//cout << rData;
-			//cout << "\n";
 		}
 		glBindBuffer(GL_ARRAY_BUFFER, radiusBuffer);
 		glBufferData(GL_ARRAY_BUFFER, numParticles*sizeof(float), &radiusData[0], GL_STREAM_DRAW);
 		
-
-		// Clear the screen
-		glClear( GL_COLOR_BUFFER_BIT );
-
-		// Use our shader
-		glUseProgram(programID);
-
-		// Compute the MVP matrix from keyboard and mouse input
-		computeMatricesFromInputs();
-		glm::mat4 ProjectionMatrix = getProjectionMatrix();
-		glm::mat4 ViewMatrix = getViewMatrix();
-		//glm::mat4 ProjectionMatrix = ProjectionMatrix;
-		//glm::mat4 ViewMatrix = ViewMatrix;
-		// Model matrix : an identity matrix (model will be at the origin)
-		glm::mat4 ModelMatrix = glm::mat4(1.0f);
-		// Our ModelViewProjection : multiplication of our 3 matrices
-		glm::mat4 MVP = ProjectionMatrix * ViewMatrix * ModelMatrix;
-
-		// Send our transformation to the currently bound shader, 
-		// in the "MVP" uniform
-		glUniformMatrix4fv(MatrixID, 1, GL_FALSE, &MVP[0][0]);
+		}
 
 		// 1rst attribute buffer : vertices
 		glEnableVertexAttribArray(0);
@@ -361,43 +566,26 @@ int main( void )
 		// 2nd attribute buffer : colors
 		glEnableVertexAttribArray(1);
 		glBindBuffer(GL_ARRAY_BUFFER, colorBuffer);
-		glVertexAttribPointer(
-			1,
-			3,
-			GL_FLOAT,
-			GL_FALSE,
-			0,
-			(void*)0
-		);
+		glVertexAttribPointer(1,3,GL_FLOAT,GL_FALSE,0,(void*)0);
 
 		// 2nd attribute buffer : radi
 		glEnableVertexAttribArray(2);
 		glBindBuffer(GL_ARRAY_BUFFER, radiusBuffer);
-		glVertexAttribPointer(
-			2,
-			1,
-			GL_FLOAT,
-			GL_FALSE,
-			0,
-			(void*)0
-		);
+		glVertexAttribPointer(2,1,GL_FLOAT,GL_FALSE,0,(void*)0);
 
 		// Draw the Particles !
-		glDrawArrays(GL_POINTS, 0, numParticles * 3);
+		glDrawArrays(GL_POINTS, 0, numParticles);
 
 		string fileString;
 		fileString.append("images/");
-		char str[15];
-		sprintf(str, "%d", renderStep);
-		fileString.append(str);
+		stringstream ss;
+		ss << renderStep;
+		fileString.append(ss.str());
 		fileString.append(".tga");
 		char *fileName = (char*)fileString.c_str();
 
 		TakeScreenshot(fileName);
 		renderStep++;
-
-		int error = glGetError();
-		cout << error;
 
 		glDisableVertexAttribArray(0);
 		glDisableVertexAttribArray(1);
@@ -406,8 +594,27 @@ int main( void )
 		// Swap buffers
 		glfwSwapBuffers();
 		
+		/*
+		glDisable(GL_TEXTURE);
+		glDisable(GL_TEXTURE_2D);
+		glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
+		glPushMatrix();
+		glLoadIdentity();
+		//glTranslatef(0.0f, 0.0f, -5.0f);
+		glRasterPos3f(110, 110, 500);
+		glutBitmapCharacter( GLUT_BITMAP_TIMES_ROMAN_24, 105 );
+		glutBitmapCharacter( GLUT_BITMAP_TIMES_ROMAN_24, 97 );
+		glutBitmapCharacter( GLUT_BITMAP_TIMES_ROMAN_24, 100 );
+		glutBitmapCharacter( GLUT_BITMAP_TIMES_ROMAN_24, 140 );
+		glutBitmapCharacter( GLUT_BITMAP_TIMES_ROMAN_24, 130 );
+		glPopMatrix();
+		glutSwapBuffers();
+		glEnable(GL_TEXTURE);
+		glEnable(GL_TEXTURE_2D);
+		*/
+
 	} // Check if the ESC key was pressed or the window was closed
-	while( glfwGetKey( GLFW_KEY_ESC ) != GLFW_PRESS && glfwGetWindowParam( GLFW_OPENED ) );
+	while( (glfwGetKey( GLFW_KEY_ESC ) != GLFW_PRESS && glfwGetWindowParam( GLFW_OPENED )) && renderStep <= 9000 );
 
 	// Cleanup VBO and shader
 	glDeleteBuffers(1, &vertexbuffer);
