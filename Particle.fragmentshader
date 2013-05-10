@@ -1,6 +1,6 @@
 #version 330 core
 
-uniform sampler2D mytexture;
+uniform sampler2D myTexture;
 in vec3 fragmentColor;
 
 // Ouput data
@@ -8,5 +8,5 @@ layout(location = 0) out vec4 color;
 
 void main()
 {
-	color = texture2D(mytexture, gl_PointCoord) * vec4(fragmentColor,1);
+	color = texture2D(myTexture, gl_PointCoord) * vec4(fragmentColor,1);
 }

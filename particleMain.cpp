@@ -33,11 +33,11 @@ int main( void )
 	int numCPU = sysinfo.dwNumberOfProcessors;
 
 	int threads = numCPU;
-	int particles = 500;
+	int particles = 2000;
 	ParticleEngine pe = (new ParticleEngineBuilder())->
 						setGravitationalConstant(7.0f)->
 						setMinimumRadius(30.0f)->
-						setBlackHoleMass(1000.0f)->
+						setBlackHoleMass(0.0f)->
 						setBlackHoleRadius(5.0f)->
 						setDisappearingRadius(10000.0f)->
 						setCollisions(true)->
@@ -50,8 +50,7 @@ int main( void )
 						setIntegrator(4)->
 						Build();
 	// Initialise GLFW
-	if( !glfwInit() )
-	{
+	if( !glfwInit() )	{
 		fprintf( stderr, "Failed to initialize GLFW\n" );
 		return -1;
 	}
@@ -62,8 +61,7 @@ int main( void )
 	glfwOpenWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
 	// Open a window and create its OpenGL context
-	if( !glfwOpenWindow( 1920, 1080, 0,0,0,0, 32,0, GLFW_FULLSCREEN ) )
-	{
+	if( !glfwOpenWindow( 1920, 1080, 0,0,0,0, 32,0, GLFW_FULLSCREEN ) )	{
 		fprintf( stderr, "Failed to open GLFW window. If you have an Intel GPU, they are not 3.3 compatible. Try the 2.1 version of the tutorials.\n" );
 		glfwTerminate();
 		return -1;
@@ -80,7 +78,7 @@ int main( void )
 
 	// Ensure we can capture the escape key being pressed below
 	glfwEnable( GLFW_STICKY_KEYS );
-	glfwSetMousePos(1024/2, 768/2);
+	glfwSetMousePos(1920/2, 1080/2);
 
 	// Dark blue background
 	glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
@@ -115,7 +113,7 @@ int main( void )
 	// Load the texture
 	// And Get a handle for our "myTextureSampler" uniform
 	GLuint Texture = loadBMP_custom("particle.bmp");
-	GLuint TextureID  = glGetUniformLocation(programID, "myTextureSampler");
+	GLuint TextureID  = glGetUniformLocation(programID, "myTexture");
 
 	glEnable(GL_BLEND);
 	//glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -138,24 +136,15 @@ int main( void )
 	
 	//camera animation variables
 	glm::vec3 position = glm::vec3(0,0,0); 
-	float horizontalAngle = 34.55f;
-	float verticalAngle = 0.0f;
-	float initialFoV = 45.0f;
-	//float speed = 100.0f; 
-	//float mouseSpeed = 0.005f;
-	//float deltaTime;
 	int quadrantXZ = 4;
 	int quadrantYZ = 4;
 	int quadrantXYZ = 4;
-	// Get mouse position
-	//int xpos = 512;
-	//int ypos = 384;
 	//Projection/View Matrix variables
 	glm::mat4 ViewMatrix;
 	glm::mat4 ProjectionMatrix;
 	vector<float> centerVector;
-	float timeStep = 1/3;
 
+	/*
    void* bitmap_fonts[7] = {
       GLUT_BITMAP_9_BY_15,
       GLUT_BITMAP_8_BY_13,
@@ -165,7 +154,8 @@ int main( void )
       GLUT_BITMAP_HELVETICA_12,
       GLUT_BITMAP_HELVETICA_18     
    };
-   
+   */
+
 	do{
 
 		//currentTime = glfwGetTime();
@@ -342,9 +332,11 @@ int main( void )
 			yRotate[0][1]*direction[0] + yRotate[1][1]*direction[1] + yRotate[2][1]*direction[2],
 			yRotate[0][2]*direction[0] + yRotate[1][2]*direction[1] + yRotate[2][2]*direction[2]);
 		glm::vec3 up = glm::cross( right, direction );
-		float FoV = initialFoV;
-		ProjectionMatrix = glm::perspective(FoV, 4.0f / 3.0f, 0.1f, 100000.0f);
+		ProjectionMatrix = glm::perspective(45.0f, 4.0f / 3.0f, 0.1f, 100000.0f);
 		ViewMatrix = glm::lookAt(position, center, up);
+		glm::mat4 ModelMatrix = glm::mat4(1.0f);
+		glm::mat4 MVP = ProjectionMatrix * ViewMatrix * ModelMatrix;
+
 		//End of Camera Movement for Movie
 
 		// Clear the screen
@@ -353,14 +345,16 @@ int main( void )
 		// Use our shader
 		glUseProgram(programID);
 
+		/*
 		// Compute the MVP matrix from keyboard and mouse input
-		//computeMatricesFromInputs();
-		//glm::mat4 ProjectionMatrix = getProjectionMatrix();
-		//glm::mat4 ViewMatrix = getViewMatrix();
+		computeMatricesFromInputs();
+		glm::mat4 ProjectionMatrix = getProjectionMatrix();
+		glm::mat4 ViewMatrix = getViewMatrix();
 		// Model matrix : an identity matrix (model will be at the origin)
 		glm::mat4 ModelMatrix = glm::mat4(1.0f);
 		// Our ModelViewProjection : multiplication of our 3 matrices
 		glm::mat4 MVP = ProjectionMatrix * ViewMatrix * ModelMatrix;
+		*/
 
 		// Send our transformation to the currently bound shader, 
 		// in the "MVP" uniform
