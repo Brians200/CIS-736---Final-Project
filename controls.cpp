@@ -42,11 +42,11 @@ void computeMatricesFromInputs(){
 	float deltaTime = float(currentTime - lastTime);
 
 	// Get mouse position
-	int xpos, ypos;
-	glfwGetMousePos(&xpos, &ypos);
+	//int xpos, ypos;
+	//glfwGetMousePos(&xpos, &ypos);
 
 	// Reset mouse position for next frame
-	glfwSetMousePos(1024/2, 768/2);
+	//glfwSetMousePos(1024/2, 768/2);
 
 	// Reset Direction Look
 	if (glfwGetKey( '0' ) == GLFW_PRESS){
@@ -58,8 +58,8 @@ void computeMatricesFromInputs(){
 
 	
 	// Compute new orientation
-	horizontalAngle += mouseSpeed * float(1024/2 - xpos );
-	verticalAngle   += mouseSpeed * float( 768/2 - ypos );
+	//horizontalAngle += mouseSpeed * float(1024/2 - xpos );
+	//verticalAngle   += mouseSpeed * float( 768/2 - ypos );
 
 	// Direction : Spherical coordinates to Cartesian coordinates conversion
 	glm::vec3 direction(
