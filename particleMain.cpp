@@ -135,14 +135,14 @@ int main( void )
 	//double currentTime;
 	
 	//camera animation variables
-	glm::vec3 position = glm::vec3(0,0,0); 
-	int quadrantXZ = 4;
-	int quadrantYZ = 4;
-	int quadrantXYZ = 4;
+	//glm::vec3 position = glm::vec3(0,0,0); 
+	//int quadrantXZ = 4;
+	//int quadrantYZ = 4;
+	//int quadrantXYZ = 4;
 	//Projection/View Matrix variables
-	glm::mat4 ViewMatrix;
-	glm::mat4 ProjectionMatrix;
-	vector<float> centerVector;
+	//glm::mat4 ViewMatrix;
+	//glm::mat4 ProjectionMatrix;
+	//vector<float> centerVector;
 
 	/*
    void* bitmap_fonts[7] = {
@@ -178,6 +178,7 @@ int main( void )
 			}
 		}
 		
+		/*
 		if(renderStep <= 100){
 			position[2]+=20;
 		}
@@ -336,6 +337,7 @@ int main( void )
 		ViewMatrix = glm::lookAt(position, center, up);
 		glm::mat4 ModelMatrix = glm::mat4(1.0f);
 		glm::mat4 MVP = ProjectionMatrix * ViewMatrix * ModelMatrix;
+		*/
 
 		//End of Camera Movement for Movie
 
@@ -345,7 +347,7 @@ int main( void )
 		// Use our shader
 		glUseProgram(programID);
 
-		/*
+		
 		// Compute the MVP matrix from keyboard and mouse input
 		computeMatricesFromInputs();
 		glm::mat4 ProjectionMatrix = getProjectionMatrix();
@@ -354,7 +356,7 @@ int main( void )
 		glm::mat4 ModelMatrix = glm::mat4(1.0f);
 		// Our ModelViewProjection : multiplication of our 3 matrices
 		glm::mat4 MVP = ProjectionMatrix * ViewMatrix * ModelMatrix;
-		*/
+		
 
 		// Send our transformation to the currently bound shader, 
 		// in the "MVP" uniform
@@ -370,7 +372,7 @@ int main( void )
 		glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
 		glBufferData(GL_ARRAY_BUFFER, 3*numParticles*sizeof(float), &datav[0], GL_STREAM_DRAW);
 
-		/*
+		
 		// Decrease Number of Particles
 		if (glfwGetKey( GLFW_KEY_KP_SUBTRACT ) == GLFW_PRESS){
 			pe.decreaseNumberOfParticles(50);
@@ -398,7 +400,7 @@ int main( void )
 		if (glfwGetKey( 'M' ) == GLFW_PRESS){colorOption = 3;}
 		// Set Color None All particles White
 		if (glfwGetKey( 'N' ) == GLFW_PRESS){colorOption = 0;}
-		*/
+		
 
 		//if( (renderStep % 30) == 0 )
 		if( true )

@@ -95,7 +95,7 @@ void computeMatricesFromInputs(){
 		position -= right * deltaTime * speed;
 	}
 
-	float FoV = initialFoV - 100 * glfwGetMouseWheel();
+	float FoV = initialFoV - 2 * glfwGetMouseWheel();
 
 	// Projection matrix : 45° Field of View, 4:3 ratio, display range : 0.1 unit <-> 100 units
 	ProjectionMatrix = glm::perspective(FoV, 4.0f / 3.0f, 0.1f, 100000.0f);
