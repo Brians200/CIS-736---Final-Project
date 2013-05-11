@@ -36,11 +36,13 @@ QuadTreeNode::QuadTreeNode(Vector3 topLeft, Vector3 topRight, Vector3 bottomLeft
 	items = 0;
 }
 
-void QuadTreeNode::AddParticle(float x, float y, float z, float newMass)
+bool QuadTreeNode::AddParticle(float x, float y, float z, float newMass)
 {
-	if(TopRightCorner.x == TopLeftCorner.x)
+	bool added = true;
+
+	if(TopRightCorner.x == TopLeftCorner.x || TopRightCorner.y == BottomRightCorner.y)
 	{
-		int a = 3;
+		return false;
 	}
 	
 	//create a single item node, taking up the whole node
@@ -50,7 +52,7 @@ void QuadTreeNode::AddParticle(float x, float y, float z, float newMass)
 		particleCenter = Vector3(x,y,z);
 
 		items++;
-		return;
+		return true;
 	}
 	else if( items == 1)
 	{
@@ -109,20 +111,23 @@ void QuadTreeNode::AddParticle(float x, float y, float z, float newMass)
 	//also update the mass and center of mass of this node
 	if(x >= middle.x && y >= middle.y)  // top right
 	{
-		TopRight->AddParticle(x,y,z,newMass);
+		added = TopRight->AddParticle(x,y,z,newMass);
 	}
 	else if(x >= middle.x && y < middle.y)  // bottom right
 	{
-		BottomRight->AddParticle(x,y,z,newMass);
+		added = BottomRight->AddParticle(x,y,z,newMass);
 	}
 	else if(x < middle.x && y >= middle.y)  // top left
 	{
-		TopLeft->AddParticle(x,y,z,newMass);
+		added = TopLeft->AddParticle(x,y,z,newMass);
 	}
 	else if(x < middle.x && y < middle.y)  // bottom left
 	{
-		BottomLeft->AddParticle(x,y,z,newMass);
+		added = BottomLeft->AddParticle(x,y,z,newMass);
 	}
+
+	if(!added)
+		return false;
 
 	float newX = particleCenter.x * mass;
 	float newY = particleCenter.y * mass;
@@ -140,7 +145,55 @@ void QuadTreeNode::AddParticle(float x, float y, float z, float newMass)
 
 	particleCenter = Vector3(newX, newY, newZ);
 	items++;
+
+	return true;
 	
 }
 
+Vector3 QuadTreeNode::calculateAcceleration(Vector3 position, float massp, float gravityCutOff, float rMin, float gravity)
+{
 
+	float ax, ay, az;
+	ax = ay = az = 0.0f;
+
+	//if 0 particles, return 0,0,0
+	if(items == 0)
+		return Vector3(ax,ay,az);
+
+	if(position.x == particleCenter.x && position.y == particleCenter.y && position.z == particleCenter.z)
+		return Vector3(ax,ay,az);
+
+	//figure out the acceleration from this node, if it is above the cut off, we need to go deeper
+	Vector3 difference = VectorMath::difference(particleCenter,position);
+	float radius = sqrtf(difference.x*difference.x + difference.y *difference.y + difference.z*difference.z);
+	float radiusInverse = 1.0f/(radius + rMin);
+	float acceleration = gravity*mass*massp*radiusInverse*radiusInverse;
+
+	//if 1 particle, return
+	// if < cutoff, return 
+	if(items == 1 )
+	{
+		ax = acceleration * difference.x * radiusInverse;
+		ay = acceleration * difference.y * radiusInverse;
+		az = acceleration * difference.z * radiusInverse;
+	}
+	else if(acceleration < gravityCutOff)
+	{
+		ax = acceleration * difference.x * radiusInverse;
+		ay = acceleration * difference.y * radiusInverse;
+		az = acceleration * difference.z * radiusInverse;
+	}
+	else //if > cutoff, add up the acceleration from the 4 parts
+	{
+		Vector3 tl = TopLeft->calculateAcceleration(position,massp,gravityCutOff,rMin,gravity);
+		Vector3 bl = BottomLeft->calculateAcceleration(position,massp,gravityCutOff,rMin,gravity);
+		Vector3 tr = TopRight->calculateAcceleration(position,massp,gravityCutOff,rMin,gravity);
+		Vector3 br = BottomRight->calculateAcceleration(position,massp,gravityCutOff,rMin,gravity);
+
+		ax = tl.x + bl.x + tr.x + br.x;
+		ay = tl.y + bl.y + tr.y + br.y;
+		az = tl.z + bl.z + tr.z + br.z;
+	}
+
+	return Vector3(ax,ay,az);
+}

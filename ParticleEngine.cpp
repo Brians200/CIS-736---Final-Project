@@ -202,22 +202,10 @@ int ParticleEngine::getNumberOfParticles()
 
 Vector3 calculateParticleAcceleration(int particleNumber,Vector3 position)
 {
-	float ax,ay,az;
-	ax = ay = az = 0;
-
+	
 	Particle thisParticle = particleArray[particleNumber];
-
-
-
-
-
-
-
-
-
-
-
-	return Vector3(ax,ay,az);
+	Vector3 retern = quadTree->calculateAcceleration(thisParticle.position, thisParticle.mass, gravityCutOff, rMin, g);
+	return retern;
 	/*
 	//loop over all the particles
 	for(int i =0 ;i < numberOfParticles; i++)

@@ -10,7 +10,9 @@ public:
 	QuadTreeNode(Vector3 topLeft, Vector3 topRight, Vector3 bottomLeft, Vector3 bottomRight);
 	~QuadTreeNode(void);
 
-	void AddParticle(float x, float y, float z, float mass);
+	bool AddParticle(float x, float y, float z, float mass);
+	Vector3 calculateAcceleration(Vector3 position, float mass, float gravityCutOff, float rMin, float gravity);
+
 
 	Vector3 TopLeftCorner;
 	Vector3 TopRightCorner;
@@ -19,9 +21,9 @@ public:
 	Vector3 middle;
 
 	QuadTreeNode * TopLeft;
-QuadTreeNode * TopRight;
-QuadTreeNode * BottomLeft;
-QuadTreeNode * BottomRight;
+	QuadTreeNode * TopRight;
+	QuadTreeNode * BottomLeft;
+	QuadTreeNode * BottomRight;
 	
 
 	int items;

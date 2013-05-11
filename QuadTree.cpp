@@ -28,6 +28,11 @@ bool QuadTree::AddParticle(float x, float y, float z, float mass)
 		return false;
 	}
 
-	qtn->AddParticle(x,y,z,mass);
-	return true;
+	return qtn->AddParticle(x,y,z,mass);
+}
+
+Vector3 QuadTree::calculateAcceleration(Vector3 position, float mass, float gravityCutOff, float rMin, float gravity)
+{
+	Vector3 retern = qtn->calculateAcceleration(position,mass, gravityCutOff, rMin, gravity);
+	return retern;
 }
