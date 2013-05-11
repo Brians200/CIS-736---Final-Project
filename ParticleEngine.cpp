@@ -282,7 +282,7 @@ Vector3 calculateBlackHoleAcceleration(int particleNumber, Vector3 position)
 	//find out how far away from the blackhole it is
 	float radius = sqrtf(position.x*position.x + position.y*position.y + position.z*position.z);
 
-	if(radius>blackHoleRadius && radius < disappearingRadius)
+	if(radius>blackHoleRadius)
 	{
 
 		//increase the fudge factor more than the other, so the black hole isn't as strong
@@ -295,19 +295,6 @@ Vector3 calculateBlackHoleAcceleration(int particleNumber, Vector3 position)
 		float newz = -acceleration*position.z*radiusInverse;
 
 		return Vector3(newx,newy,newz);
-	}
-	else if(disappearingRadius> radius) //too far away
-	{
-		//particleArray[particleNumber] = generateNewParticle();
-		mutexLock2.lock();
-			
-		vector<int> coll;
-		coll.push_back(-1);
-		coll.push_back(particleNumber);
-
-		blackHoleRemovals.push_back(coll);
-
-		mutexLock2.unlock();
 	}
 	else // inside the black hole
 	{
@@ -492,8 +479,38 @@ void ParticleEngine::step(float time)
 	for(int ii=0;ii<numberOfParticles; ii++)
 	{
 		Vector3 position = particleArray[ii].position;
-		quadTree->AddParticle(position.x,position.y,position.z, particleArray[ii].mass);
+		if(! quadTree->AddParticle(position.x,position.y,position.z, particleArray[ii].mass) )
+		{
+			vector<int> coll;
+			coll.push_back(-1);
+			coll.push_back(ii);
+
+			blackHoleRemovals.push_back(coll);
+		}
 	}
+
+	if(blackHoleRemovals.size() > 0)
+	{
+		list<int> removing;
+		while(0<blackHoleRemovals.size())
+		{
+			removing.push_back(blackHoleRemovals.front()[1]);
+			blackHoleRemovals.pop_front();
+		}
+
+		removing.sort();
+		removing.unique();
+
+
+		while(0<removing.size())
+		{
+			particleArray.erase(particleArray.begin()+removing.back());
+			removing.pop_back();
+			numberOfParticles -- ;
+		}
+	}
+
+
 
 	
 
@@ -522,7 +539,7 @@ void ParticleEngine::step(float time)
 	}
 
 	//remove collided particles
-	if(listOfCollisions.size() > 0)
+	if(listOfCollisions.size() > 0 || blackHoleRemovals.size() > 0)
 	{
 		list<int> removing;
 		while(0<listOfCollisions.size())
@@ -549,4 +566,10 @@ void ParticleEngine::step(float time)
 		}
 	}
 	delete quadTree;
+
+	if(numberOfParticles  == 0)
+	{
+		particleArray.push_back(generateNewParticle());
+		numberOfParticles ++ ;
+	}
 }

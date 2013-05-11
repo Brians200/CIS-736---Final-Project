@@ -9,7 +9,10 @@ public:
 	~QuadTree(void);
 
 	bool AddParticle(float x, float y, float z, float mass);
+	Vector3 calculateAcceleration(Vector3 position, float mass);
+
 private:
 	QuadTreeNode * qtn;
+	float maxDistance;
 
 };
