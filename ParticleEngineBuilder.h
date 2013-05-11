@@ -20,7 +20,7 @@ public:
 	ParticleEngineBuilder* setmaxZSpawnDistance(int value);
 	ParticleEngineBuilder* setnumberOfParticles(int value);
 	ParticleEngineBuilder* setIntegrator(int value);
-
+	ParticleEngineBuilder* setGravityCutOff(float value);
 
 	ParticleEngine Build();
 private:

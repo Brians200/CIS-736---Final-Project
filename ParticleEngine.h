@@ -9,13 +9,13 @@
 #include <algorithm>
 #include <thread>
 #include <mutex>
-
+#include "QuadTree.h"
 using namespace std;
 
 class ParticleEngine
 {
 public:
-	ParticleEngine(float gp, float rMinp,float blackHoleMassp, float blackHoleRadiusp, float disappearingRadiusp,float minSpawnRadiusp, int maxSpawnRadiusp, float spawnVelocityp, int maxZSpawnDistancep, int threadsp, int particlesp, bool collisionsp, int integratorp);
+	ParticleEngine(float gp, float rMinp,float blackHoleMassp, float blackHoleRadiusp, float disappearingRadiusp,float minSpawnRadiusp, int maxSpawnRadiusp, float spawnVelocityp, int maxZSpawnDistancep, int threadsp, int particlesp, bool collisionsp, int integratorp, float gravityCutOff);
 	~ParticleEngine(void);
 	void intializeEngine();
 	void step(float time);

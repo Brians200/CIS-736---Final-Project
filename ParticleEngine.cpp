@@ -18,6 +18,9 @@ int maxSpawnRadius;
 float spawnVelocity;
 int maxZSpawnDistance;
 int integrator;
+float gravityCutOff;
+
+QuadTree  quadTree;
 
 vector<Vector3> newPositions;
 vector<Vector3> newVelocities;
@@ -34,8 +37,9 @@ ParticleEngine::ParticleEngine(void)
 {
 }
 
-ParticleEngine::ParticleEngine(float gp, float rMinp,float blackHoleMassp, float blackHoleRadiusp, float disappearingRadiusp,float minSpawnRadiusp, int maxSpawnRadiusp, float spawnVelocityp, int maxZSpawnDistancep, int threadsp, int particlesp, bool collisionsp, int integratorp)
+ParticleEngine::ParticleEngine(float gp, float rMinp,float blackHoleMassp, float blackHoleRadiusp, float disappearingRadiusp,float minSpawnRadiusp, int maxSpawnRadiusp, float spawnVelocityp, int maxZSpawnDistancep, int threadsp, int particlesp, bool collisionsp, int integratorp, float gravityCutOffp)
 {
+
 	g = gp;
 	rMin = rMinp;
 	blackHoleMass = blackHoleMassp;
@@ -49,12 +53,12 @@ ParticleEngine::ParticleEngine(float gp, float rMinp,float blackHoleMassp, float
 	numberOfThreads = threadsp;
 	numberOfParticles = particlesp;
 	integrator = integratorp;
+	gravityCutOff = gravityCutOffp;
 
 	srand ((unsigned int)time(NULL));
 	previousAngle = 0.0f;
 
 	intializeEngine();
-
 }
 
 void ParticleEngine::setIntegrator(int integratorNumber)
@@ -203,6 +207,18 @@ Vector3 calculateParticleAcceleration(int particleNumber,Vector3 position)
 
 	Particle thisParticle = particleArray[particleNumber];
 
+
+
+
+
+
+
+
+
+
+
+	return Vector3(ax,ay,az);
+	/*
 	//loop over all the particles
 	for(int i =0 ;i < numberOfParticles; i++)
 	{
@@ -253,9 +269,7 @@ Vector3 calculateParticleAcceleration(int particleNumber,Vector3 position)
 		ay += acceleration * difference.y * radiusInverse;
 		az += acceleration * difference.z * radiusInverse;
 
-	}
-	return Vector3(ax,ay,az);
-
+	}*/
 }
 
 Vector3 calculateBlackHoleAcceleration(int particleNumber, Vector3 position)
@@ -474,6 +488,12 @@ void parallelAcceleration(int start,int stop, float time, int integrator)
 
 void ParticleEngine::step(float time)
 {
+	quadTree = QuadTree(disappearingRadius);
+	for(int ii=0;ii<numberOfParticles; ii++)
+	{
+		Vector3 position = particleArray[ii].position;
+		quadTree.AddParticle(position.x,position.y,position.z, particleArray[ii].mass);
+	}
 
 	vector<std::thread> threads;
 

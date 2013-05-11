@@ -38,8 +38,8 @@ int main( void )
 	GetNativeSystemInfo( &sysinfo );
 	int numCPU = sysinfo.dwNumberOfProcessors;
 
-	int threads = numCPU;
-	int particles = numCPU*66;
+	int threads = 1;//numCPU;
+	int particles = numCPU*100;
 	ParticleEngine pe = (new ParticleEngineBuilder())->
 						setGravitationalConstant(30.0f)->
 						setMinimumRadius(5.0f)->
@@ -53,6 +53,7 @@ int main( void )
 						setspawnVelocity(12.0f)->
 						setmaxZSpawnDistance(10)->
 						setnumberOfParticles(particles)->
+						setGravityCutOff(.0001f)->
 						setIntegrator(4)->
 						Build();
 	// Initialise GLFW
