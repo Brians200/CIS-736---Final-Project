@@ -20,7 +20,7 @@ int maxZSpawnDistance;
 int integrator;
 float gravityCutOff;
 
-QuadTree  quadTree;
+QuadTree * quadTree;
 
 vector<Vector3> newPositions;
 vector<Vector3> newVelocities;
@@ -488,12 +488,15 @@ void parallelAcceleration(int start,int stop, float time, int integrator)
 
 void ParticleEngine::step(float time)
 {
-	quadTree = QuadTree(disappearingRadius);
+	quadTree = new QuadTree(disappearingRadius);
 	for(int ii=0;ii<numberOfParticles; ii++)
 	{
 		Vector3 position = particleArray[ii].position;
-		quadTree.AddParticle(position.x,position.y,position.z, particleArray[ii].mass);
+		quadTree->AddParticle(position.x,position.y,position.z, particleArray[ii].mass);
 	}
+
+	
+
 
 	vector<std::thread> threads;
 
@@ -545,4 +548,5 @@ void ParticleEngine::step(float time)
 			numberOfParticles -- ;
 		}
 	}
+	delete quadTree;
 }

@@ -10,6 +10,6 @@ public:
 
 	bool AddParticle(float x, float y, float z, float mass);
 private:
-	QuadTreeNode qtn;
+	QuadTreeNode * qtn;
 
 };

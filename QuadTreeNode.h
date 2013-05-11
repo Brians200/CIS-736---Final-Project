@@ -17,6 +17,11 @@ public:
 	Vector3 BottomLeftCorner;
 	Vector3 BottomRightCorner;
 	Vector3 middle;
+
+	QuadTreeNode * TopLeft;
+QuadTreeNode * TopRight;
+QuadTreeNode * BottomLeft;
+QuadTreeNode * BottomRight;
 	
 
 	int items;

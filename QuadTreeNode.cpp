@@ -1,10 +1,7 @@
 #include "QuadTreeNode.h"
 
 
-QuadTreeNode  TopLeft;
-QuadTreeNode  TopRight;
-QuadTreeNode  BottomLeft;
-QuadTreeNode  BottomRight;
+
 
 
 
@@ -14,6 +11,14 @@ QuadTreeNode::QuadTreeNode(void)
 
 QuadTreeNode::~QuadTreeNode(void)
 {
+	if(TopLeft == nullptr)
+	{
+		delete TopLeft;
+		delete TopRight;
+		delete BottomLeft;
+		delete BottomRight;
+	}
+
 }
 
 QuadTreeNode::QuadTreeNode(Vector3 topLeft, Vector3 topRight, Vector3 bottomLeft, Vector3 bottomRight)
@@ -33,7 +38,10 @@ QuadTreeNode::QuadTreeNode(Vector3 topLeft, Vector3 topRight, Vector3 bottomLeft
 
 void QuadTreeNode::AddParticle(float x, float y, float z, float newMass)
 {
-	
+	if(TopRightCorner.x == TopLeftCorner.x)
+	{
+		int a = 3;
+	}
 	
 	//create a single item node, taking up the whole node
 	if(items == 0)
@@ -52,7 +60,7 @@ void QuadTreeNode::AddParticle(float x, float y, float z, float newMass)
 		Vector3 br(BottomRightCorner.x,middle.y,0.0f);
 		Vector3 bl(middle.x,middle.y,0.0f);
 
-		TopRight = QuadTreeNode(tl,tr,bl,br);
+		TopRight = new QuadTreeNode(tl,tr,bl,br);
 
 		//topLeft
 		tr = Vector3(middle.x,TopLeftCorner.y, 0.0f);
@@ -60,7 +68,7 @@ void QuadTreeNode::AddParticle(float x, float y, float z, float newMass)
 		br = Vector3(middle.x,middle.y,0.0f);
 		bl = Vector3(TopLeftCorner.x,middle.y,0.0f);
 
-		TopLeft = QuadTreeNode(tl,tr,bl,br);
+		TopLeft = new QuadTreeNode(tl,tr,bl,br);
 
 		//bottomLeft
 		tr = Vector3(middle.x,middle.y, 0.0f);
@@ -68,7 +76,7 @@ void QuadTreeNode::AddParticle(float x, float y, float z, float newMass)
 		br = Vector3(middle.x,BottomLeftCorner.y,0.0f);
 		bl = Vector3(BottomLeftCorner.x,BottomLeftCorner.y,0.0f);
 
-		BottomLeft = QuadTreeNode(tl,tr,bl,br);
+		BottomLeft =new  QuadTreeNode(tl,tr,bl,br);
 
 		//bottomRight
 		tr = Vector3(BottomRightCorner.x,middle.y, 0.0f);
@@ -76,23 +84,23 @@ void QuadTreeNode::AddParticle(float x, float y, float z, float newMass)
 		br = Vector3(BottomRightCorner.x,BottomRightCorner.y,0.0f);
 		bl = Vector3(middle.x,BottomRightCorner.y,0.0f);
 
-		BottomRight = QuadTreeNode(tl,tr,bl,br);
+		BottomRight = new QuadTreeNode(tl,tr,bl,br);
 
 		if(particleCenter.x >= middle.x && particleCenter.y >= middle.y)  // top right
 		{
-			TopRight.AddParticle(particleCenter.x,particleCenter.y,particleCenter.z,mass);
+			TopRight->AddParticle(particleCenter.x,particleCenter.y,particleCenter.z,mass);
 		}
 		else if(particleCenter.x >= middle.x && particleCenter.y < middle.y)  // bottom right
 		{
-			BottomRight.AddParticle(particleCenter.x,particleCenter.y,particleCenter.z,mass);
+			BottomRight->AddParticle(particleCenter.x,particleCenter.y,particleCenter.z,mass);
 		}
 		else if(particleCenter.x < middle.x && particleCenter.y >= middle.y)  // top left
 		{
-			TopLeft.AddParticle(particleCenter.x,particleCenter.y,particleCenter.z,mass);
+			TopLeft->AddParticle(particleCenter.x,particleCenter.y,particleCenter.z,mass);
 		}
 		else if(particleCenter.x < middle.x && particleCenter.y < middle.y)  // bottom left
 		{
-			BottomLeft.AddParticle(particleCenter.x,particleCenter.y,particleCenter.z,mass);
+			BottomLeft->AddParticle(particleCenter.x,particleCenter.y,particleCenter.z,mass);
 		}
 
 
@@ -101,19 +109,19 @@ void QuadTreeNode::AddParticle(float x, float y, float z, float newMass)
 	//also update the mass and center of mass of this node
 	if(x >= middle.x && y >= middle.y)  // top right
 	{
-		TopRight.AddParticle(x,y,z,newMass);
+		TopRight->AddParticle(x,y,z,newMass);
 	}
 	else if(x >= middle.x && y < middle.y)  // bottom right
 	{
-		BottomRight.AddParticle(x,y,z,newMass);
+		BottomRight->AddParticle(x,y,z,newMass);
 	}
 	else if(x < middle.x && y >= middle.y)  // top left
 	{
-		TopLeft.AddParticle(x,y,z,newMass);
+		TopLeft->AddParticle(x,y,z,newMass);
 	}
 	else if(x < middle.x && y < middle.y)  // bottom left
 	{
-		BottomLeft.AddParticle(x,y,z,newMass);
+		BottomLeft->AddParticle(x,y,z,newMass);
 	}
 
 	float newX = particleCenter.x * mass;
