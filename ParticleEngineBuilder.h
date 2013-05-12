@@ -5,24 +5,24 @@ using namespace std;
 class ParticleEngineBuilder
 {
 public:
-ParticleEngineBuilder(void);
+	ParticleEngineBuilder(void);
 
-ParticleEngineBuilder* setGravitationalConstant(float value);
-ParticleEngineBuilder* setMinimumRadius(float value);
-ParticleEngineBuilder* setBlackHoleMass(float value);
-ParticleEngineBuilder* setBlackHoleRadius(float value);
-ParticleEngineBuilder* setDisappearingRadius(float value);
-ParticleEngineBuilder* setCollisions(bool value);
-ParticleEngineBuilder* setNumberOfThreads(int value);
-ParticleEngineBuilder* setMinSpawnRadius(float value);
-ParticleEngineBuilder* setmaxSpawnRadius(int value);
-ParticleEngineBuilder* setspawnVelocity(float value);
-ParticleEngineBuilder* setmaxZSpawnDistance(int value);
-ParticleEngineBuilder* setnumberOfParticles(int value);
-ParticleEngineBuilder* setIntegrator(int value);
-ParticleEngineBuilder* setGravityCutOff(float value);
+	ParticleEngineBuilder* setGravitationalConstant(float value);
+	ParticleEngineBuilder* setMinimumRadius(float value);
+	ParticleEngineBuilder* setBlackHoleMass(float value);
+	ParticleEngineBuilder* setBlackHoleRadius(float value);
+	ParticleEngineBuilder* setDisappearingRadius(float value);
+	ParticleEngineBuilder* setCollisions(bool value);
+	ParticleEngineBuilder* setNumberOfThreads(int value);
+	ParticleEngineBuilder* setMinSpawnRadius(float value);
+	ParticleEngineBuilder* setmaxSpawnRadius(int value);
+	ParticleEngineBuilder* setspawnVelocity(float value);
+	ParticleEngineBuilder* setmaxZSpawnDistance(int value);
+	ParticleEngineBuilder* setnumberOfParticles(int value);
+	ParticleEngineBuilder* setIntegrator(int value);
+	ParticleEngineBuilder* setGravityCutOff(float value);
 
-ParticleEngine Build();
+	ParticleEngine Build();
 private:
 
 

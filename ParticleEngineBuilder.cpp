@@ -16,20 +16,20 @@ int integratorBuilder;
 float gravityCutOffBuilder;
 
 ParticleEngineBuilder::ParticleEngineBuilder(){
-gBuilder=30.0f;
-rMinBuilder = 5.0f;
-blackHoleMassBuilder = 0.0f;
-blackHoleRadiusBuilder = 5.0f;
-disappearingRadiusBuilder = 100000.0f;
-collisionsBuilder = true;
-numberOfThreadsBuilder = 1;
-numberOfParticlesBuilder=150;
-minSpawnRadiusBuilder = 70;
-maxSpawnRadiusBuilder = 270;
-spawnVelocityBuilder = 12.0f;
-maxZSpawnDistanceBuilder = 10;
-integratorBuilder = 4;
-gravityCutOffBuilder = .0001f;
+	gBuilder=30.0f;
+	rMinBuilder = 5.0f;
+	blackHoleMassBuilder = 0.0f;
+	blackHoleRadiusBuilder = 5.0f;
+	disappearingRadiusBuilder = 100000.0f;
+	collisionsBuilder = true;
+	numberOfThreadsBuilder = 1;
+	numberOfParticlesBuilder=150;
+	minSpawnRadiusBuilder = 70;
+	maxSpawnRadiusBuilder = 270;
+	spawnVelocityBuilder = 12.0f;
+	maxZSpawnDistanceBuilder = 10;
+	integratorBuilder = 4;
+	gravityCutOffBuilder = .0001f;
 }
 
 ParticleEngineBuilder* ParticleEngineBuilder::setGravitationalConstant(float value){gBuilder=value; return this;}

@@ -41,7 +41,7 @@ int main( void )
 	int numCPU = sysinfo.dwNumberOfProcessors;
 
 	int threads = numCPU;
-	int particles = 3500;
+	int particles = 3000;
 	ParticleEngine pe = (new ParticleEngineBuilder())->
 						setGravitationalConstant(7.0f)->
 						setMinimumRadius(30.0f)->
@@ -50,12 +50,12 @@ int main( void )
 						setDisappearingRadius(10000.0f)->
 						setCollisions(true)->
 						setNumberOfThreads(threads)->
-						setMinSpawnRadius(70)->
-						setmaxSpawnRadius(470)->
-						setspawnVelocity(9.0f)->
+						setMinSpawnRadius(10)->
+						setmaxSpawnRadius(670)->
+						setspawnVelocity(7.0f)->
 						setmaxZSpawnDistance(20)->
 						setnumberOfParticles(particles)->
-						setGravityCutOff(.5f)->
+						setGravityCutOff(.05f)->
 						setIntegrator(4)->
 						Build();
 	// Initialise GLFW
