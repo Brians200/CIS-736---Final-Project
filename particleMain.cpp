@@ -6,7 +6,7 @@
 
 #include <GL/glew.h>
 #include <GL/glfw.h>
-#include <GL/glut.h>
+//#include <GL/glut.h>
 
 // Include GLM
 #include <glm/glm.hpp>
@@ -26,6 +26,14 @@ using namespace glm;
 #include <sstream>
 //#include <iostream>
 
+float clamp(float val, float max)
+{
+	if( val > max)
+		return max;
+	else
+		return val;
+}
+
 int main( void )
 {
 	_SYSTEM_INFO sysinfo;
@@ -33,7 +41,7 @@ int main( void )
 	int numCPU = sysinfo.dwNumberOfProcessors;
 
 	int threads = numCPU;
-	int particles = 2000;
+	int particles = 3500;
 	ParticleEngine pe = (new ParticleEngineBuilder())->
 						setGravitationalConstant(7.0f)->
 						setMinimumRadius(30.0f)->
@@ -43,10 +51,11 @@ int main( void )
 						setCollisions(true)->
 						setNumberOfThreads(threads)->
 						setMinSpawnRadius(70)->
-						setmaxSpawnRadius(270)->
+						setmaxSpawnRadius(470)->
 						setspawnVelocity(9.0f)->
 						setmaxZSpawnDistance(20)->
 						setnumberOfParticles(particles)->
+						setGravityCutOff(.5f)->
 						setIntegrator(4)->
 						Build();
 	// Initialise GLFW
@@ -457,17 +466,11 @@ int main( void )
 		}
 		else if(colorOption == 1){//Color Acceleration
 
-			float maxAcceleration = 0.0f;
-			for(int i=0;i<numParticles;i++)
-			{
-				if(pe.getAcceleration(i) > maxAcceleration)
-				{
-					maxAcceleration = pe.getAcceleration(i);
-				}
-			}
+			float maxAcceleration = 3.0f;
+
 			for(int i=0; i<numParticles; i++){
 				float acceleration = pe.getAcceleration(i);
-				vector<float> newColor = cp.getColor(120.0f*acceleration/maxAcceleration+240.0f,1,1);
+				vector<float> newColor = cp.getColor(120.0f*clamp(acceleration,maxAcceleration)/maxAcceleration+240.0f,1,1);
 				float blue = newColor.back();
 				newColor.pop_back();
 				float green = newColor.back();
@@ -481,17 +484,11 @@ int main( void )
 		}
 		else if(colorOption == 2){//Color Velocity
 
-			float maxVelocity = 0.0f;
-			for(int i=0;i<numParticles;i++)
-			{
-				if(pe.getVelocity(i) > maxVelocity)
-				{
-					maxVelocity = pe.getVelocity(i);
-				}
-			}
+			float maxVelocity = 15.0f;
+
 			for(int i=0; i<numParticles; i++){
 				float velocity = pe.getVelocity(i);
-				vector<float> newColor = cp.getColor(120.0f-120.0f * velocity/maxVelocity,1,1);
+				vector<float> newColor = cp.getColor(120.0f-120.0f * clamp(velocity,maxVelocity)/maxVelocity,1,1);
 				float blue = newColor.back();
 				newColor.pop_back();
 				float green = newColor.back();
