@@ -50,12 +50,12 @@ int main( void )
 						setDisappearingRadius(10000.0f)->
 						setCollisions(true)->
 						setNumberOfThreads(threads)->
-						setMinSpawnRadius(10)->
-						setmaxSpawnRadius(670)->
+						setMinSpawnRadius(1)->
+						setmaxSpawnRadius(1000)->
 						setspawnVelocity(7.0f)->
 						setmaxZSpawnDistance(20)->
 						setnumberOfParticles(particles)->
-						setGravityCutOff(.05f)->
+						setGravityCutOff(.01f)->
 						setIntegrator(4)->
 						Build();
 	// Initialise GLFW
@@ -417,7 +417,7 @@ int main( void )
 		vector<float> colorData(3*numParticles);
 		if(colorOption == 0){//No Coloring
 			for(int i=0; i<numParticles; i++){
-				int size = pe.getParticleSize(i)*100;
+				int size = (int) (pe.getParticleSize(i)*100);
 				float hue = 0.0f;
 				float saturation = 0.0f;
 				float value = 0.0f;
@@ -466,7 +466,7 @@ int main( void )
 		}
 		else if(colorOption == 1){//Color Acceleration
 
-			float maxAcceleration = 3.0f;
+			float maxAcceleration = 2.0f;
 
 			for(int i=0; i<numParticles; i++){
 				float acceleration = pe.getAcceleration(i);

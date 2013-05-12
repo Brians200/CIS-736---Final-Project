@@ -204,57 +204,68 @@ Vector3 calculateParticleAcceleration(int particleNumber,Vector3 position)
 {
 
 	Particle thisParticle = particleArray[particleNumber];
-	Vector3 retern = quadTree->calculateAcceleration(thisParticle.position, thisParticle.mass, gravityCutOff, rMin, g);
-	return retern;
-	/*
+
+	//use the barnes-hut algorithm
+	if(gravityCutOff != 0.0f)
+	{
+		
+		Vector3 retern = quadTree->calculateAcceleration(thisParticle.position, thisParticle.mass, gravityCutOff, rMin, g);
+		return retern;
+	}
+
+	float ax,ay,az;
+	ax = ay = az = 0;
+	
 	//loop over all the particles
 	for(int i =0 ;i < numberOfParticles; i++)
 	{
-	//skip this particle
-	if(i==particleNumber) continue;
+		//skip this particle
+		if(i==particleNumber) continue;
 
-	Particle otherParticle = particleArray[i];
+		Particle otherParticle = particleArray[i];
 
-	//calculate differences between their coordinates
-	Vector3 difference = VectorMath::difference(otherParticle.position, position);
+		//calculate differences between their coordinates
+		Vector3 difference = VectorMath::difference(otherParticle.position, position);
 
-	//calculate the distance between them
-	float radius = sqrtf(difference.x*difference.x + difference.y *difference.y + difference.z*difference.z);
+		//calculate the distance between them
+		float radius = sqrtf(difference.x*difference.x + difference.y *difference.y + difference.z*difference.z);
 
-	//we are setting the radius of the particle to be the mass/100
-	//so if the radius between the centers is less than the sum of both radii,
-	//they have collided
-	if(collisions && radius<thisParticle.radius+otherParticle.radius && particleNumber < i)
-	{
-	particleArray[particleNumber].velocity.x = (thisParticle.velocity.x * thisParticle.mass + otherParticle.velocity.x*otherParticle.mass) / (thisParticle.mass + otherParticle.mass);
-	particleArray[particleNumber].velocity.y = (thisParticle.velocity.y * thisParticle.mass + otherParticle.velocity.y*otherParticle.mass) / (thisParticle.mass + otherParticle.mass);
-	particleArray[particleNumber].velocity.z = (thisParticle.velocity.z * thisParticle.mass + otherParticle.velocity.z*otherParticle.mass) / (thisParticle.mass + otherParticle.mass);
+		//we are setting the radius of the particle to be the mass/100
+		//so if the radius between the centers is less than the sum of both radii,
+		//they have collided
+		if(collisions && radius<thisParticle.radius+otherParticle.radius && particleNumber < i)
+		{
+			particleArray[particleNumber].velocity.x = (thisParticle.velocity.x * thisParticle.mass + otherParticle.velocity.x*otherParticle.mass) / (thisParticle.mass + otherParticle.mass);
+			particleArray[particleNumber].velocity.y = (thisParticle.velocity.y * thisParticle.mass + otherParticle.velocity.y*otherParticle.mass) / (thisParticle.mass + otherParticle.mass);
+			particleArray[particleNumber].velocity.z = (thisParticle.velocity.z * thisParticle.mass + otherParticle.velocity.z*otherParticle.mass) / (thisParticle.mass + otherParticle.mass);
 
-	particleArray[particleNumber].setMass(thisParticle.mass+otherParticle.mass);
-	particleArray[i].setMass(0);
+			particleArray[particleNumber].setMass(thisParticle.mass+otherParticle.mass);
+			particleArray[i].setMass(0);
 
-	//Place the particles in a list to be removed
-	mutexLock.lock();
-	vector<int> coll;
-	coll.push_back(particleNumber);
-	coll.push_back(i);
+			//Place the particles in a list to be removed
+			mutexLock.lock();
+			vector<int> coll;
+			coll.push_back(particleNumber);
+			coll.push_back(i);
 
-	listOfCollisions.push_back(coll);
+			listOfCollisions.push_back(coll);
 
-	mutexLock.unlock();
+			mutexLock.unlock();
+		}
+		//get the inverse, with a slight fudge factor to prevent dividing by really small numbers, cause the particles to fling off when they get close
+		float radiusInverse = 1.0f/(radius + rMin);
+
+		//Figure out the magnitude of the total acceleration between these two
+		float acceleration = g*thisParticle.mass*otherParticle.mass*radiusInverse*radiusInverse;
+
+		//add the individual compents to the running total
+		ax += acceleration * difference.x * radiusInverse;
+		ay += acceleration * difference.y * radiusInverse;
+		az += acceleration * difference.z * radiusInverse;
+
 	}
-	//get the inverse, with a slight fudge factor to prevent dividing by really small numbers, cause the particles to fling off when they get close
-	float radiusInverse = 1.0f/(radius + rMin);
 
-	//Figure out the magnitude of the total acceleration between these two
-	float acceleration = g*thisParticle.mass*otherParticle.mass*radiusInverse*radiusInverse;
-
-	//add the individual compents to the running total
-	ax += acceleration * difference.x * radiusInverse;
-	ay += acceleration * difference.y * radiusInverse;
-	az += acceleration * difference.z * radiusInverse;
-
-	}*/
+	return Vector3(ax,ay,az);
 }
 
 Vector3 calculateBlackHoleAcceleration(int particleNumber, Vector3 position)
@@ -460,42 +471,45 @@ void parallelAcceleration(int start,int stop, float time, int integrator)
 
 void ParticleEngine::step(float time)
 {
-	quadTree = new QuadTree(disappearingRadius);
-	for(int ii=0;ii<numberOfParticles; ii++)
+	if(gravityCutOff != 0.0f)
 	{
-		Vector3 position = particleArray[ii].position;
-		if(! quadTree->AddParticle(position.x,position.y,position.z, particleArray[ii].mass) )
-		{
-			vector<int> coll;
-			coll.push_back(-1);
-			coll.push_back(ii);
 
-			blackHoleRemovals.push_back(coll);
+		quadTree = new QuadTree(disappearingRadius);
+		for(int ii=0;ii<numberOfParticles; ii++)
+		{
+			Vector3 position = particleArray[ii].position;
+			if(! quadTree->AddParticle(position.x,position.y,position.z, particleArray[ii].mass) )
+			{
+				vector<int> coll;
+				coll.push_back(-1);
+				coll.push_back(ii);
+
+				blackHoleRemovals.push_back(coll);
+			}
 		}
+
+		if(blackHoleRemovals.size() > 0)
+		{
+			list<int> removing;
+			while(0<blackHoleRemovals.size())
+			{
+				removing.push_back(blackHoleRemovals.front()[1]);
+				blackHoleRemovals.pop_front();
+			}
+
+			removing.sort();
+			removing.unique();
+
+
+			while(0<removing.size())
+			{
+				particleArray.erase(particleArray.begin()+removing.back());
+				removing.pop_back();
+				numberOfParticles --;
+			}
+		}
+
 	}
-
-	if(blackHoleRemovals.size() > 0)
-	{
-		list<int> removing;
-		while(0<blackHoleRemovals.size())
-		{
-			removing.push_back(blackHoleRemovals.front()[1]);
-			blackHoleRemovals.pop_front();
-		}
-
-		removing.sort();
-		removing.unique();
-
-
-		while(0<removing.size())
-		{
-			particleArray.erase(particleArray.begin()+removing.back());
-			removing.pop_back();
-			numberOfParticles -- ;
-		}
-	}
-
-
 
 
 
